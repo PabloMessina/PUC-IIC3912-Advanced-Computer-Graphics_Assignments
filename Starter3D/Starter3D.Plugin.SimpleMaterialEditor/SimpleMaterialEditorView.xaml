@@ -3,8 +3,36 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:simpleMaterialEditor="clr-namespace:Starter3D.Plugin.SimpleMaterialEditor"
              mc:Ignorable="d"
              d:DesignHeight="300" d:DesignWidth="300">
-  <Grid>
-  </Grid>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"></RowDefinition>
+            <RowDefinition Height="*"></RowDefinition>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"></ColumnDefinition>
+            <ColumnDefinition Width="*"></ColumnDefinition>
+        </Grid.ColumnDefinitions>
+        <Border Width="250" Margin="5" BorderThickness="1" BorderBrush="Black" CornerRadius="1">
+            <Border.Background>
+                <SolidColorBrush Color="#AAFFFFFF"></SolidColorBrush>
+            </Border.Background>
+            <Grid Margin="5">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"></RowDefinition>
+                    <RowDefinition Height="Auto"></RowDefinition>
+                    <RowDefinition Height="Auto"></RowDefinition>
+                    <RowDefinition Height="Auto"></RowDefinition>
+                    <RowDefinition Height="Auto"></RowDefinition>
+                </Grid.RowDefinitions>
+                <TextBlock Text="Select a shape:"></TextBlock>
+                <ComboBox Grid.Row="1" Name="shapesComboBox" SelectionChanged="shapesComboBox_SelectionChanged"></ComboBox>
+                <TextBlock Grid.Row="2" Text="Select a material:"></TextBlock>
+                <ComboBox Grid.Row="3" Name="materialsComboBox" SelectionChanged="materialsComboBox_SelectionChanged"></ComboBox>
+                <StackPanel Name="EditPanel" Grid.Row="4"></StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
 </UserControl>
