@@ -89,7 +89,7 @@ namespace Starter3D.Plugin.SimpleMaterialEditor
             TextBox tb1 = new TextBox();
             string _key1 = vp.Key + _sepString + "1";
             tb1.Name = _key1;
-            tb1.Text = vp.Value.X+"";
+            tb1.Text = "" + vp.Value.X;
             tb1.Tag = vp.Value.X;
             tb1.TextChanged += vectorTextBoxChanged;
             sp.Children.Add(tb1);
@@ -98,7 +98,7 @@ namespace Starter3D.Plugin.SimpleMaterialEditor
             TextBox tb2 = new TextBox();
             string _key2 = vp.Key + _sepString + "2";
             tb2.Name = _key2;
-            tb2.Text = vp.Value.Y + "";
+            tb2.Text = "" + vp.Value.Y;
             tb2.Tag = vp.Value.Y;
             tb2.TextChanged += vectorTextBoxChanged;
             sp.Children.Add(tb2);
@@ -107,7 +107,7 @@ namespace Starter3D.Plugin.SimpleMaterialEditor
             TextBox tb3 = new TextBox();
             string _key3 = vp.Key + _sepString + "3";
             tb3.Name = _key3;
-            tb3.Text = vp.Value.Z + "";
+            tb3.Text = "" + vp.Value.Z;
             tb3.Tag = vp.Value.Z;
             tb3.TextChanged += vectorTextBoxChanged;
             sp.Children.Add(tb3);
@@ -141,7 +141,7 @@ namespace Starter3D.Plugin.SimpleMaterialEditor
             TextBox tb = new TextBox();
             tb.Name = np.Key;
             tb.Tag = np.Value;
-            tb.Text = np.Value + "";
+            tb.Text = "" + np.Value;
             tb.TextChanged += numericTextBoxChanged;
             sp.Children.Add(tb);
             textBoxDictionary.Add(np.Key, tb);
