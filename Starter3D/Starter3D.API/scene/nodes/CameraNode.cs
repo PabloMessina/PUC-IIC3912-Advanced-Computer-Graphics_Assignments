@@ -40,6 +40,16 @@ namespace Starter3D.API.scene.nodes
       }
     }
 
+    public Vector3 Target
+    {
+        get { return _target; }
+    }
+
+    public Vector3 Up
+    {
+        get { return _up; }
+    }
+
 
     protected CameraNode(float nearClip, float farClip, int order, Vector3 position = default(Vector3),
       Vector3 target = default(Vector3), Vector3 up = default(Vector3))

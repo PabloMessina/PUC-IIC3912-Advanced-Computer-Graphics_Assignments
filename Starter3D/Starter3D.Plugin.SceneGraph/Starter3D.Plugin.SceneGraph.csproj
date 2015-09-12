@@ -102,7 +102,7 @@
     </Content>
     <Content Include="scenes\scenegraph.xml">
       <SubType>Designer</SubType>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
   <ItemGroup>
@@ -136,6 +136,15 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="shaders\direct3d\blinnPhongDiffuseTextureFragment.fx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="shaders\direct3d\blinnPhongFragment.fx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="shaders\direct3d\justRedFragment.fx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="shaders\opengl\blinnPhongDiffuseTextureFragment.glsl">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
@@ -151,7 +160,9 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="shaders\direct3d\" />
+    <None Include="shaders\opengl\justRedFragment.glsl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
