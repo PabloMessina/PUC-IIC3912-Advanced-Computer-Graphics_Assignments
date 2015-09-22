@@ -21,8 +21,8 @@ namespace Starter3D.API.scene.nodes
         private Quaternion _rotation;
         private Vector3 _scale;
 
-        private Matrix4 localModelTransform;
-        private Matrix4 parentModelTransform;
+        private Matrix4 _localModelTransform;
+        private Matrix4 _parentModelTransform;
         private Matrix4 _modelTransform;
 
         public IShape Shape
@@ -53,6 +53,16 @@ namespace Starter3D.API.scene.nodes
             get { return _modelTransform; }
         }
 
+        public Matrix4 ParentModelTransform
+        {
+            get { return _parentModelTransform; }
+            set
+            {
+                _parentModelTransform = value;
+                _modelTransform = _localModelTransform * _parentModelTransform;                
+            }
+        }
+
         public ShapeNode(IShape shape, IShapeFactory shapeFactory, IResourceManager resourceManager, Vector3 scale = default(Vector3), Vector3 position = default(Vector3),
           Vector3 orientationAxis = default(Vector3), float orientationAngle = 0)
             : this(shapeFactory, resourceManager, scale, position, orientationAxis, orientationAngle)
@@ -73,9 +83,9 @@ namespace Starter3D.API.scene.nodes
             _scale = scale;
             _position = position;
             _rotation = Quaternion.FromAxisAngle(orientationAxis, orientationAngle);
-            localModelTransform = GetModelTransform(_position, _rotation, _scale);
-            parentModelTransform = Matrix4.Identity;
-            _modelTransform = localModelTransform * parentModelTransform;            
+            _localModelTransform = GetModelTransform(_position, _rotation, _scale);
+            _parentModelTransform = Matrix4.Identity;
+            _modelTransform = _localModelTransform * _parentModelTransform;            
         }
 
         public override void Load(ISceneDataNode sceneDataNode)
@@ -144,14 +154,14 @@ namespace Starter3D.API.scene.nodes
         }
 
         private void localModelTransformChanged() {
-            localModelTransform = GetModelTransform(_position, _rotation, _scale);
-            _modelTransform = localModelTransform * parentModelTransform;
+            _localModelTransform = GetModelTransform(_position, _rotation, _scale);
+            _modelTransform = _localModelTransform * _parentModelTransform;
         }
 
-        public void parentModelTransformChanged(Matrix4 newMatrix)
+        private void parentModelTransformChanged(Matrix4 newMatrix)
         {
-            parentModelTransform = newMatrix;
-            _modelTransform = localModelTransform * parentModelTransform;
+            _parentModelTransform = newMatrix;
+            _modelTransform = _localModelTransform * _parentModelTransform;
             propagateModelTransformToChildren();
         }
 
@@ -177,6 +187,24 @@ namespace Starter3D.API.scene.nodes
             
             _rotation = Quaternion.FromAxisAngle(axis, angle);
 
+            localModelTransformChanged();
+        }
+
+        public void setRotationAngle(float newAngle)
+        {
+            Vector3 axis;
+            float angle;
+            _rotation.ToAxisAngle(out axis, out angle);
+            _rotation = Quaternion.FromAxisAngle(axis, newAngle);
+            localModelTransformChanged();
+        }
+
+        public void setRotationAxis(Vector3 newAxis)
+        {
+            Vector3 axis;
+            float angle;
+            _rotation.ToAxisAngle(out axis, out angle);
+            _rotation = Quaternion.FromAxisAngle(newAxis,angle);
             localModelTransformChanged();
         }
 

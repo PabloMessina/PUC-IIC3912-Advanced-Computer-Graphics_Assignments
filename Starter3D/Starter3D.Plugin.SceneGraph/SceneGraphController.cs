@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows.Input;
+using System.Windows;
 using OpenTK;
 using Starter3D.API.controller;
 using Starter3D.API.geometry.primitives;
@@ -13,6 +14,8 @@ using Starter3D.API.scene.nodes;
 using Starter3D.API.scene.persistence;
 using Starter3D.API.utils;
 using Starter3D.API.geometry;
+using System.Windows.Data;
+using System.Globalization;
 
 namespace Starter3D.Plugin.SceneGraph
 {
@@ -27,40 +30,50 @@ namespace Starter3D.Plugin.SceneGraph
 
         private readonly IScene _scene;
 
-        private readonly SceneGraphView _centralView;
+        private readonly SceneGraphView _view;
 
-        private const float angleDelta = 0.5f * (float)(Math.PI / 180);
         private const float _2PI = (float)Math.PI * 2;
-        private const double tickSpan = 5;
+        private const double tickSpan = 10;
         private double elapsedTime = 0;
         private DateTime startTime;
-
-
-        private List<ShapeNode> rootShapeNodes = new List<ShapeNode>();
-        private List<ShapeNode> spheres = new List<ShapeNode>();
+        
         private ShapeNode currSphere;
-        private Dictionary<ShapeNode, float> angleDeltas = new Dictionary<ShapeNode, float>();
-        bool animationPaused = false;
 
+        private ObservableCollection<ShapeTreeViewModel> rootShapeNodes = new ObservableCollection<ShapeTreeViewModel>();
+        private ObservableCollection<SphereShapeViewModel> sphereShapeViewModels = new ObservableCollection<SphereShapeViewModel>();
+        private PickedShapeViewModel _pickedShapeViewModel;
+        private ShapeTreeViewModel _pickedShapeTreeViewModel = null;
+        private ShapeTreeViewModel _pickedShapeTVM_byTriggers = null;
+
+        bool animationPaused = true;
 
         private ShapeNode pickedRoot = null;
-        bool objectPicked = false;
+        bool objectPicked = false;  
         Vector3 mouse_camera;
         Vector3 pick_camera;
         Vector3 rootOriginalPosition;
         float displacement_factor;
 
-        //space, 32, tab, 3, left, 23, right, 25
-        private const int SPACE = 32;
-        private const int TAB = 3;
-        private const int LEFT = 23;
-        private const int RIGHT = 25;
-
         private bool isRightDown = false;
+
+
+        private string _debugDisplayText = "";
+        public string DebugDisplayText
+        {
+            get { return _debugDisplayText; }
+            set
+            {
+                if (_debugDisplayText != value)
+                {
+                    _debugDisplayText = value;
+                    OnPropertyChanged("DebugDisplayText");
+                }
+            }
+        }
 
         public int Width
         {
-            get { return 800; }
+            get { return 800; }            
         }
 
         public int Height
@@ -75,12 +88,12 @@ namespace Starter3D.Plugin.SceneGraph
 
         public object CentralView
         {
-            get { return _centralView; }
+            get { return null; }
         }
 
         public object LeftView
         {
-            get { return null; }
+            get { return _view; }
         }
 
         public object RightView
@@ -108,6 +121,38 @@ namespace Starter3D.Plugin.SceneGraph
             get { return "Scene Graph"; }
         }
 
+        public ObservableCollection<ShapeTreeViewModel> RootShapeNodes
+        {
+            get { return rootShapeNodes; }
+        }
+
+        public ObservableCollection<SphereShapeViewModel> SphereNodes
+        {
+            get { return sphereShapeViewModels; }
+        }
+
+        public PickedShapeViewModel PickedShape
+        {
+            get { return _pickedShapeViewModel; }
+        }
+
+        public ShapeTreeViewModel PickedShapeTreeViewModel
+        {
+            set { _pickedShapeTVM_byTriggers = value; }
+        }
+
+        private void SetSelectedShapeNode(ShapeNode newShape)
+        {
+            if (_pickedShapeViewModel.ShapeNode != newShape)
+            {
+                if(_pickedShapeViewModel.ShapeNode != null)
+                    _pickedShapeViewModel.ShapeNode.Shape.Material = _resourceManager.GetMaterial("stones");
+                _pickedShapeViewModel.ShapeNode = newShape;
+                _pickedShapeViewModel.ShapeNode.Shape.Material = _resourceManager.GetMaterial("justRed");
+                OnPropertyChanged("PickedShape");
+            }
+        }
+
 
         public SceneGraphController(IRenderer renderer, ISceneReader sceneReader, IResourceManager resourceManager)
         {
@@ -119,9 +164,33 @@ namespace Starter3D.Plugin.SceneGraph
             _resourceManager = resourceManager;
 
             _resourceManager.Load(ResourcePath);
-            _scene = _sceneReader.Read(ScenePath);
+            _scene = _sceneReader.Read(ScenePath);           
 
-            _centralView = new SceneGraphView(this);
+            foreach (ShapeNode sn in _scene.Shapes)
+            {
+                //collect root nodes
+                if (sn.Parent == null || !(sn.Parent is ShapeNode))
+                {
+                    rootShapeNodes.Add(new ShapeTreeViewModel(sn, null));
+                    ShapeTreeViewModel.SetTagsRecursively(sn);
+                }
+                //collect spheres
+                if (sn.Children.Count() > 0)
+                {
+                    sphereShapeViewModels.Add(new SphereShapeViewModel(sn));
+                }
+            }
+            currSphere = sphereShapeViewModels[0].SphereShape;
+            _pickedShapeViewModel = new PickedShapeViewModel();
+            _pickedShapeViewModel.ShapeNode = rootShapeNodes[0].ShapeNode;
+            _pickedShapeViewModel.ShapeNode.Shape.Material = _resourceManager.GetMaterial("justRed");
+
+            startTime = DateTime.Now;
+
+            _view = new SceneGraphView(this);
+
+
+
         }
 
         public void Load()
@@ -130,25 +199,6 @@ namespace Starter3D.Plugin.SceneGraph
 
             _resourceManager.Configure(_renderer);
             _scene.Configure(_renderer);
-
-
-            foreach (ShapeNode sn in _scene.Shapes)
-            {
-                //collect root nodes
-                if (sn.Parent == null || !(sn.Parent is ShapeNode))
-                {
-                    rootShapeNodes.Add(sn);
-                }
-                //collect spheres
-                if (sn.Children.Count() > 0)
-                {
-                    spheres.Add(sn);
-                    angleDeltas[sn] = 0; //set angle delta to 0 (default)
-                }
-            }
-            currSphere = spheres.First();
-            startTime = DateTime.Now;
-
 
         }
 
@@ -175,15 +225,15 @@ namespace Starter3D.Plugin.SceneGraph
                 if (!animationPaused)
                 {
                     //rotate spheres
-                    foreach (ShapeNode sphere in spheres)
+                    foreach (SphereShapeViewModel ssvm in sphereShapeViewModels)
                     {
-                        sphere.changeRotationAngle(angleDeltas[sphere]);
+                        ssvm.SphereShape.changeRotationAngle(ssvm.AngularVelocityRadians);
                     }
                 }
                 //propagate changes top-down from roots
-                foreach (ShapeNode root in rootShapeNodes)
+                foreach (ShapeTreeViewModel root in rootShapeNodes)
                 {
-                    root.propagateModelTransformToChildren();
+                    root.ShapeNode.propagateModelTransformToChildren();
                 }
             }
         }
@@ -229,13 +279,14 @@ namespace Starter3D.Plugin.SceneGraph
             else if (button == ControllerMouseButton.Left)
                 if (!objectPicked)
                 {
-
+                    
                     //screen width and height
-                    var width = _centralView.ActualWidth;
-                    var height = _centralView.ActualHeight;
+                    var window = Window.GetWindow(_view);
+                    var width = (window.ActualWidth - _view.ActualWidth - 16) / 2;
+                    var height = (window.ActualHeight - 38);
 
                     //mouse coordinates
-                    int mouse_x = (x > width) ? (int)(x - width) : x;
+                    int mouse_x = (x > width) ? (int)(x - width - _view.ActualWidth) : x;
                     int mouse_y = y;
 
                     //to clipping coordinates
@@ -300,9 +351,12 @@ namespace Starter3D.Plugin.SceneGraph
 
                     if (pickedShape != null)
                     {
+                        SetSelectedShapeNode(pickedShape);
+
                         pickedRoot = findRootShape(pickedShape);
                         rootOriginalPosition = pickedRoot.Position;
                         objectPicked = true;
+
                     }
                 }
 
@@ -310,7 +364,8 @@ namespace Starter3D.Plugin.SceneGraph
 
         private ShapeNode findRootShape(ShapeNode shape)
         {
-            while (shape.Parent is ShapeNode) shape = (ShapeNode)shape.Parent;
+            while ( shape.Parent != null && shape.Parent is ShapeNode) 
+                shape = (ShapeNode)shape.Parent;
             return shape;
         }
 
@@ -319,7 +374,7 @@ namespace Starter3D.Plugin.SceneGraph
             List<IVertex> vertices = triangle.Vertices.ToList();
             var A = vertices[0].Position;
             var B = vertices[1].Position;
-            var C = vertices[2].Position;
+            var C = vertices[2].Position;           
 
             var a = A.X - B.X;
             var b = A.Y - B.Y;
@@ -380,11 +435,12 @@ namespace Starter3D.Plugin.SceneGraph
             if (objectPicked)
             {
                 //screen width and height
-                var width = _centralView.ActualWidth;
-                var height = _centralView.ActualHeight;
+                var window = Window.GetWindow(_view);
+                var width = (window.ActualWidth - _view.ActualWidth - 16) / 2;
+                var height = (window.ActualHeight - 38);
 
                 //mouse coordinates
-                int mouse_x = x > width ? (int)(x - width) : x;
+                int mouse_x = (x > width) ? (int)(x - width - _view.ActualWidth) : x;
                 int mouse_y = y;
 
                 //to clipping coordinates
@@ -404,37 +460,136 @@ namespace Starter3D.Plugin.SceneGraph
                 var shift = new Vector4((m_camera.Xyz - mouse_camera) * displacement_factor,0);
                 shift = Vector4.Transform(shift, inverse_viewMatrix); //shift to world coordinates
                 pickedRoot.Position = rootOriginalPosition + shift.Xyz;
+
+                if (pickedRoot == _pickedShapeViewModel.ShapeNode)
+                    OnPropertyChanged("PickedShape");
+
+
             }
         }
 
         public void KeyDown(int key)
-        {//space, 32, tab, 3, left, 23, right, 25
+        {
+        }
 
-            if (key == SPACE)
-                animationPaused = !animationPaused;
+        bool treeItemPicked = false;
+        public void MouseDownOnThisShapeTreeViewModel(ShapeTreeViewModel stvm)
+        {
+            DebugDisplayText += "Mouse DOWN on : " + stvm.DisplayText + "\n";
 
-            else if (!animationPaused)
-                switch (key)
-                {
-                    case 49:
-                    case 50:
-                    case 51:
-                        //int index = spheres.IndexOf(currSphere);
-                        //index = (index + 1) % spheres.Count;
-                        int index = key - 49;
-                        if (currSphere != null)
-                            currSphere.Shape.Material = _resourceManager.GetMaterial("stones");
-                        currSphere = spheres[index];
-                        currSphere.Shape.Material = _resourceManager.GetMaterial("justRed");
-                        break;
-                    case RIGHT:
-                        angleDeltas[currSphere] += angleDelta;
-                        break;
-                    case LEFT:
-                        angleDeltas[currSphere] -= angleDelta;
-                        break;
-                }
+            treeItemPicked = true;
+            _pickedShapeTreeViewModel = stvm;
+            SetSelectedShapeNode(stvm.ShapeNode);
+
+        }
+        public void MouseUpOnThisShapeTreeViewModel(ShapeTreeViewModel stvm)
+        {
+            DebugDisplayText += "Mouse UP on : " + stvm.DisplayText +"\n";
+
+            if (_pickedShapeTreeViewModel != null && _pickedShapeTreeViewModel != stvm && treeItemPicked)
+            {
+                rearrangeTreeNodes(_pickedShapeTreeViewModel, stvm);
+                OnPropertyChanged("PickedShape");
+            }
+            treeItemPicked = false;
+        }
+
+        public void rearrangeTreeNodes(ShapeTreeViewModel source, ShapeTreeViewModel target)
+        {
+            if (source.IsAncestorOf(target))
+            {
+                ShapeNode tmp = target.ShapeNode;
+                target.ShapeNode = source.ShapeNode;
+                source.ShapeNode = tmp;
+            }
+            else
+            {
+                if (source.Parent != null)
+                    source.Parent.Children.Remove(source);
+                else
+                    rootShapeNodes.Remove(source);
+                target.Children.Add(source);
+                source.Parent = target;
+            }
+
+            refreshNodes();
+
+        }
+
+        private void refreshNodes()
+        {
+            foreach (var viewmodel in rootShapeNodes)
+            {
+                refreshNodes(viewmodel, null);
+                viewmodel.ShapeNode.ParentModelTransform = Matrix4.Identity;
+            }
+        }
+        private void refreshNodes(ShapeTreeViewModel viewmodel, ShapeNode parent)
+        {
+            var curr = viewmodel.ShapeNode;
+            curr.Parent = parent;
+            var currChildren = curr.Children.ToList();
+            foreach (var child in currChildren)
+                curr.RemoveChild(child);
+
+            foreach (var vmchild in viewmodel.Children)
+            {
+                curr.AddChild(vmchild.ShapeNode);
+                refreshNodes(vmchild, curr);
+            }
+        }
+
+        internal void makeSelectedTreeViewModelRoot()
+        {
+
+            var pickedShapeTVM = _pickedShapeTreeViewModel;
+            if (pickedShapeTVM == null)
+                pickedShapeTVM = _pickedShapeTVM_byTriggers;
+
+            if (pickedShapeTVM != null)
+            {
+                DebugDisplayText += "makeSelectedTreeViewModelRoot() called\n\t_pickedShapeTreeViewModel = "
+                    + pickedShapeTVM.DisplayText + "\n";
+
+                var parent = pickedShapeTVM.Parent;
+                if (parent == null)
+                    return;
+                parent.Children.Remove(pickedShapeTVM);
+                pickedShapeTVM.Parent = null;
+                rootShapeNodes.Add(pickedShapeTVM);
+
+                var parentShape = parent.ShapeNode;
+                var pickedShape = pickedShapeTVM.ShapeNode;
+                parentShape.RemoveChild(pickedShape);
+                pickedShape.Parent = null;
+                pickedShape.ParentModelTransform = Matrix4.Identity;
+
+            }
+        }
+
+        internal void StopAnimation()
+        {
+            animationPaused = true;
+        }
+
+        internal void RunAnimation()
+        {
+            animationPaused = false;
         }
 
     }
+
+    public class EqualityConverter : IMultiValueConverter
+    {
+        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+        {            
+            return (values[0] as PickedShapeViewModel).ShapeNode == (values[1] as ShapeTreeViewModel).ShapeNode;
+        }
+
+        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
 }

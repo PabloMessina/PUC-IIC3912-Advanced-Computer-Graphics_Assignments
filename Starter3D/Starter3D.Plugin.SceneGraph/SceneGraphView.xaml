@@ -3,38 +3,117 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:local ="clr-namespace:Starter3D.Plugin.SceneGraph"
              mc:Ignorable="d"
              d:DesignHeight="300" d:DesignWidth="300">
-  <UserControl.Resources>
-    
-  </UserControl.Resources>
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"></RowDefinition>
-            <RowDefinition Height="*"></RowDefinition>
-        </Grid.RowDefinitions>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto"></ColumnDefinition>
-            <ColumnDefinition Width="*"></ColumnDefinition>
-        </Grid.ColumnDefinitions>
-        <Border Width="250" Margin="5" BorderThickness="1" BorderBrush="Black" CornerRadius="1">
-            <Border.Background>
-                <SolidColorBrush Color="#AAFFFFFF"></SolidColorBrush>
-            </Border.Background>
-            <Grid Margin="5">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"></RowDefinition>
-                    <RowDefinition Height="Auto"></RowDefinition>
-                    <RowDefinition Height="Auto"></RowDefinition>
-                    <RowDefinition Height="Auto"></RowDefinition>
-                    <RowDefinition Height="Auto"></RowDefinition>
-                </Grid.RowDefinitions>
-                <TextBlock Text="Select a shape:"></TextBlock>
-                <ComboBox Grid.Row="1" Name="shapesComboBox"></ComboBox>
-                <TextBlock Grid.Row="2" Text="Select a material:"></TextBlock>
-                <ComboBox Grid.Row="3" Name="materialsComboBox"></ComboBox>
-                <StackPanel Name="EditPanel" Grid.Row="4"></StackPanel>
-            </Grid>
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis" />
+        <local:EqualityConverter x:Key="EqualityConverter" />
+    </UserControl.Resources>
+    <StackPanel Width ="270">
+        <StackPanel Visibility="{Binding Path=PickedShape.HasShape, Converter={StaticResource BoolToVis}}" HorizontalAlignment="Left"
+                    Width="auto"
+                    Margin="3">
+            <TextBlock Margin="0,0,0,2">Position</TextBlock>
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="X: "/>
+                <TextBox Text="{Binding PickedShape.Position_X}"/>
+                <TextBlock Text="Y: "/>
+                <TextBox Text="{Binding PickedShape.Position_Y}"/>
+                <TextBlock Text="Z: "/>
+                <TextBox Text="{Binding PickedShape.Position_Z}"/>
+            </StackPanel>
+            <Separator/>
+            <TextBlock Margin="0,0,0,2">Scale</TextBlock>
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="X: " />
+                <TextBox Text="{Binding PickedShape.Scale_X}"/>
+                <TextBlock Text="Y: "/>
+                <TextBox Text="{Binding PickedShape.Scale_Y}"/>
+                <TextBlock Text="Z: "/>
+                <TextBox Text="{Binding PickedShape.Scale_Z}"/>
+            </StackPanel>
+            <Separator/>
+            <TextBlock HorizontalAlignment="Left" Margin="0,0,0,2">Rotation Axis</TextBlock>
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="X: "/>
+                <TextBox Text="{Binding PickedShape.RotationAxis_X}"/>
+                <TextBlock Text="Y: "/>
+                <TextBox Text="{Binding PickedShape.RotationAxis_Y}"/>
+                <TextBlock Text="Z: "/>
+                <TextBox Text="{Binding PickedShape.RotationAxis_Z}"/>
+            </StackPanel>
+            <Separator/>
+            <TextBlock HorizontalAlignment="Left" Margin="0,0,0,2">Rotation Angle</TextBlock>
+            <StackPanel Orientation="Horizontal">
+                <Slider x:Name ="angleSlider" Maximum="360" Width="160"
+                        Value="{Binding PickedShape.RotationAngle}"></Slider>
+                <TextBlock Text="{Binding PickedShape.RotationAngle}"
+                           Background="White" Padding="3" Margin="2"></TextBlock>
+            </StackPanel>
+        </StackPanel>
+        
+        <!---->
+        <ScrollViewer Height="auto" MaxHeight="400" MaxWidth="350" HorizontalAlignment="Left">
+            <TreeView Name="treeView" ItemsSource="{Binding RootShapeNodes}">                   
+                <TreeView.ItemTemplate>
+                     <HierarchicalDataTemplate DataType="{x:Type local:ShapeTreeViewModel}" ItemsSource="{Binding Children}">
+                        <StackPanel Orientation="Horizontal">
+                            <Ellipse Fill="Red" Width="10" Height="10"/>
+                            <TextBlock Margin="1" Text="{Binding DisplayText}" FontWeight="Bold"/>
+                        </StackPanel>
+                    </HierarchicalDataTemplate>
+                </TreeView.ItemTemplate>
+                <TreeView.Resources>                    
+                    <Style TargetType="TreeViewItem">
+                        <Setter Property="IsExpanded" Value="True"/>
+                        <EventSetter Event="MouseLeftButtonUp" Handler="TreeViewItem_MouseUp" />
+                        <EventSetter Event="PreviewMouseLeftButtonDown" Handler="TreeViewItem_PreviewMouseDown" />
+                        <EventSetter Event="Selected" Handler="TreeViewItem_Selected"/>
+                        <Style.Triggers>
+                            <DataTrigger Value="True" >
+                                <DataTrigger.Binding>
+                                    <MultiBinding Converter="{StaticResource EqualityConverter}">
+                                        <Binding RelativeSource="{RelativeSource FindAncestor, AncestorType={x:Type TreeView}}" Path="DataContext.PickedShape"/>
+                                        <Binding/>
+                                    </MultiBinding>
+                                </DataTrigger.Binding>
+                                <Setter Property="IsSelected" Value="True"/>
+                                <Setter Property="Foreground" Value="Green"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TreeView.Resources> 
+            </TreeView>
+        </ScrollViewer>
+        <Button Click="Button_Click">Make selected node a new root</Button>        
+        <Separator/>
+        <Border BorderBrush="Black" BorderThickness="2">
+            <StackPanel Margin="2">
+                <TextBlock Margin="2">Animation controls</TextBlock>
+                <ListView ItemsSource="{Binding SphereNodes}">
+                    <ListView.ItemTemplate>
+                        <DataTemplate>                           
+                            <StackPanel>
+                                <TextBlock Text="{Binding DisplayText}"/>
+                                <StackPanel Orientation="Horizontal">
+                                    <Slider x:Name="velSlider" Minimum="-25" Maximum="25" Width="130"
+                                            Value="{Binding AngularVelocityDegrees}" />
+                                    <TextBlock Text="{Binding AngularVelocityDegrees}"/>
+                                    <TextBlock Text=" degrees/frame"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+                <Button Click="AnimationButtonClick" Tag="stopped">Run Animation</Button>
+            </StackPanel>
         </Border>
-    </Grid>
+        <Separator/>
+        <TextBlock Margin="3">DEBUG MESSAGES</TextBlock>
+        <ScrollViewer x:Name="debugScrollViewer" MaxHeight="120" HorizontalScrollBarVisibility="Auto" SizeChanged="ScrollViewer_SizeChanged" >
+            <TextBlock Text="{Binding DebugDisplayText}"/>
+        </ScrollViewer>
+        <!---->
+    </StackPanel>
 </UserControl>

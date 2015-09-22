@@ -35,7 +35,13 @@ namespace Starter3D.Plugin.SceneGraph
     public void OnPropertyChanged(string propertyName)
     {
       if (!string.IsNullOrEmpty(propertyName) && PropertyChanged != null)
-        PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+        PropertyChanged(this, new PropertyChangedEventArgs(propertyName));        
+    }
+
+    public void OnPropertyChanged()
+    {
+        if (PropertyChanged != null)
+            PropertyChanged(this, new PropertyChangedEventArgs(String.Empty));
     }
 
     public void OnPropertyChanged<T>(Expression<Func<T>> property)
