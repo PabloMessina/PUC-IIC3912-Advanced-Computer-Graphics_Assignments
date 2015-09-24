@@ -32,6 +32,9 @@ namespace Starter3D.Plugin.SceneGraph
 
         private readonly SceneGraphView _view;
 
+        private double _width;
+        private double _height;
+
         private const float _2PI = (float)Math.PI * 2;
         private const double tickSpan = 10;
         private double elapsedTime = 0;
@@ -50,11 +53,11 @@ namespace Starter3D.Plugin.SceneGraph
         private ShapeNode pickedRoot = null;
         bool objectPicked = false;  
         Vector3 mouse_camera;
-        Vector3 pick_camera;
         Vector3 rootOriginalPosition;
         float displacement_factor;
 
         private bool isRightDown = false;
+        bool draggingInOpenGL;
 
 
         private string _debugDisplayText = "";
@@ -227,7 +230,7 @@ namespace Starter3D.Plugin.SceneGraph
                     //rotate spheres
                     foreach (SphereShapeViewModel ssvm in sphereShapeViewModels)
                     {
-                        ssvm.SphereShape.changeRotationAngle(ssvm.AngularVelocityRadians);
+                        ssvm.SphereShape.changeRotationAngle((float)ssvm.AngularVelocityRadians);
                     }
                 }
                 //propagate changes top-down from roots
@@ -243,6 +246,9 @@ namespace Starter3D.Plugin.SceneGraph
             var perspectiveCamera = _scene.CurrentCamera as PerspectiveCamera;
             if (perspectiveCamera != null)
                 perspectiveCamera.AspectRatio = (float)(width / height);
+
+            _width = width;
+            _height = height;
         }
 
 
@@ -281,18 +287,20 @@ namespace Starter3D.Plugin.SceneGraph
                 {
                     
                     //screen width and height
-                    var window = Window.GetWindow(_view);
-                    var width = (window.ActualWidth - _view.ActualWidth - 16) / 2;
-                    var height = (window.ActualHeight - 38);
+                    //var window = Window.GetWindow(_view);
+                    //var width = (window.ActualWidth - _view.ActualWidth - 16) / 2;
+                  //  var height = (window.ActualHeight - 38);
 
                     //mouse coordinates
-                    int mouse_x = (x > width) ? (int)(x - width - _view.ActualWidth) : x;
+                    int mouse_x = (x > _width) ? (int)(x - _width - _view.ActualWidth) : x;
                     int mouse_y = y;
+
+                    draggingInOpenGL = x <= Width;
 
                     //to clipping coordinates
                     var m_clipping = new Vector4(
-                         (float)(2 * (mouse_x / width) - 1),
-                         (float)(2 * (1 - mouse_y / height) - 1),
+                         (float)(2 * (mouse_x / _width) - 1),
+                         (float)(2 * (1 - mouse_y / _height) - 1),
                          -1, 1);
 
                     //to camera coordinates
@@ -339,11 +347,10 @@ namespace Starter3D.Plugin.SceneGraph
                                 {
                                     min_t = t;
                                     pickedShape = sn;
-                                    pick_camera = Vector4.Transform(new Vector4((p0 + t * dir), 1), model2viewMatrix).Xyz;
-                                    displacement_factor = pick_camera.Length / mouse_camera.Length;
-
-                                    if (pick_camera.Z < -(cam.FarClip+20))
-                                        pickedShape = null;
+                                    //pick_camera = Vector4.Transform(new Vector4((p0 + t * dir), 1), model2viewMatrix).Xyz;
+                                    //displacement_factor = pick_camera.Length / mouse_camera.Length;                                    
+                                    //if (pick_camera.Z < -(cam.FarClip+20))
+                                      //  pickedShape = null;
                                 }
                             }
                         }
@@ -352,8 +359,9 @@ namespace Starter3D.Plugin.SceneGraph
                     if (pickedShape != null)
                     {
                         SetSelectedShapeNode(pickedShape);
-
                         pickedRoot = findRootShape(pickedShape);
+                        var pos = new Vector4(pickedRoot.Position, 1);
+                        displacement_factor = Vector4.Transform(pos, inverse_viewMatrix).Xyz.Length / mouse_camera.Length;
                         rootOriginalPosition = pickedRoot.Position;
                         objectPicked = true;
 
@@ -435,18 +443,18 @@ namespace Starter3D.Plugin.SceneGraph
             if (objectPicked)
             {
                 //screen width and height
-                var window = Window.GetWindow(_view);
-                var width = (window.ActualWidth - _view.ActualWidth - 16) / 2;
-                var height = (window.ActualHeight - 38);
+                //var window = Window.GetWindow(_view);
+                //var width = (window.ActualWidth - _view.ActualWidth - 16) / 2;
+                //var height = (window.ActualHeight - 38);
 
                 //mouse coordinates
-                int mouse_x = (x > width) ? (int)(x - width - _view.ActualWidth) : x;
+                int mouse_x = (x > _width) ? (int)(x - _width - (draggingInOpenGL ? 0 : _view.ActualWidth)) : x;
                 int mouse_y = y;
 
                 //to clipping coordinates
                 var m_clipping = new Vector4(
-                     (float)(2 * (mouse_x / width) - 1),
-                     (float)(2 * (1 - mouse_y / height) - 1),
+                     (float)(2 * (mouse_x / _width) - 1),
+                     (float)(2 * (1 - mouse_y / _height) - 1),
                      -1, 1);
 
                 //to camera coordinates
@@ -526,11 +534,16 @@ namespace Starter3D.Plugin.SceneGraph
         }
         private void refreshNodes(ShapeTreeViewModel viewmodel, ShapeNode parent)
         {
+            var dummyText = ShapeTreeViewModel.tagsDictionary[viewmodel.ShapeNode];
             var curr = viewmodel.ShapeNode;
             curr.Parent = parent;
             var currChildren = curr.Children.ToList();
             foreach (var child in currChildren)
+            {
+                var aux = child.Parent;
                 curr.RemoveChild(child);
+                child.Parent = aux;
+            }
 
             foreach (var vmchild in viewmodel.Children)
             {

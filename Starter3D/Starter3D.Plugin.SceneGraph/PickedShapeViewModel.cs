@@ -24,8 +24,9 @@ namespace Starter3D.Plugin.SceneGraph
                 if (_shapeNode != value)
                 {
                     _shapeNode = value;
-                    _shapeNode.Rotation.ToAxisAngle(out rotAxis, out rotAngle);
+                    rotAngle = _shapeNode.OrientationAngle;
                     rotAngle = (float)(rotAngle * 180 / Math.PI);
+                    rotAxis = _shapeNode.OrientationAxis;
                     position = _shapeNode.Position;
                     scale = _shapeNode.Scale;
                     OnPropertyChanged();
@@ -40,7 +41,7 @@ namespace Starter3D.Plugin.SceneGraph
             get { return rotAngle; }
             set
             {
-                if (rotAngle != value)
+                if (rotAngle != value && !float.IsNaN(value))
                 {
                     var temp = (float)(value * Math.PI / 180);
                     rotAngle = value;
@@ -56,7 +57,7 @@ namespace Starter3D.Plugin.SceneGraph
             get { return rotAxis.X; }
             set
             {
-                if (rotAxis.X != value)
+                if (rotAxis.X != value && !float.IsNaN(value))
                 {
                     rotAxis.X = value;
                     _shapeNode.setRotationAxis(rotAxis);
@@ -71,7 +72,7 @@ namespace Starter3D.Plugin.SceneGraph
             get { return rotAxis.Y; }
             set
             {
-                if (rotAxis.Y != value)
+                if (rotAxis.Y != value && !float.IsNaN(value))
                 {
                     rotAxis.Y = value;
                     _shapeNode.setRotationAxis(rotAxis);
@@ -86,7 +87,7 @@ namespace Starter3D.Plugin.SceneGraph
             get { return rotAxis.Z; }
             set
             {
-                if (rotAxis.Z != value)
+                if (rotAxis.Z != value && !float.IsNaN(value))
                 {
                     rotAxis.Z = value;
                     _shapeNode.setRotationAxis(rotAxis);
@@ -104,7 +105,7 @@ namespace Starter3D.Plugin.SceneGraph
             get { return _shapeNode.Position.X; }
             set
             {
-                if (position.X != value)
+                if (position.X != value && !float.IsNaN(value))
                 {
                     position.X = value;
                     _shapeNode.Position = position;
@@ -118,7 +119,7 @@ namespace Starter3D.Plugin.SceneGraph
             get { return _shapeNode.Position.Y; }
             set
             {
-                if (position.Y != value)
+                if (position.Y != value && !float.IsNaN(value))
                 {
                     position.Y = value;
                     _shapeNode.Position = position;
@@ -132,7 +133,7 @@ namespace Starter3D.Plugin.SceneGraph
             get { return _shapeNode.Position.Z; }
             set
             {
-                if (position.Z != value)
+                if (position.Z != value && !float.IsNaN(value))
                 {
                     position.Z = value;
                     _shapeNode.Position = position;
@@ -149,7 +150,7 @@ namespace Starter3D.Plugin.SceneGraph
             get { return _shapeNode.Scale.X; }
             set
             {
-                if (scale.X != value)
+                if (scale.X != value && !float.IsNaN(value))
                 {
                     scale.X = value;
                     _shapeNode.Scale = scale;
@@ -163,7 +164,7 @@ namespace Starter3D.Plugin.SceneGraph
             get { return _shapeNode.Scale.Y; }
             set
             {
-                if (scale.Y != value)
+                if (scale.Y != value && !float.IsNaN(value))
                 {
                     scale.Y = value;
                     _shapeNode.Scale = scale;
@@ -177,7 +178,7 @@ namespace Starter3D.Plugin.SceneGraph
             get { return _shapeNode.Scale.Z; }
             set
             {
-                if (scale.Z != value)
+                if (scale.Z != value && !float.IsNaN(value))
                 {
                     scale.Z = value;
                     _shapeNode.Scale = scale;

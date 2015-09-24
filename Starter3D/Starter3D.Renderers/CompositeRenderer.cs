@@ -49,11 +49,27 @@ namespace Starter3D.Renderers
       }
     }
 
-    public void SetFacesData(string objectName, List<int> indices)
+    public void DrawLines(string objectName, int lineCount, float lineWidth)
+    {
+        foreach (var renderer in _renderers)
+        {
+            renderer.DrawLines(objectName, lineCount, lineWidth);
+        }
+    }
+
+    public void DrawPoints(string objectName, int pointCount, float pointSize)
+    {
+        foreach (var renderer in _renderers)
+        {
+            renderer.DrawPoints(objectName, pointCount, pointSize);
+        }
+    }
+
+    public void SetIndexData(string objectName, List<int> indices)
     {
       foreach (var renderer in _renderers)
       {
-        renderer.SetFacesData(objectName, indices);
+        renderer.SetIndexData(objectName, indices);
       }
     }
 

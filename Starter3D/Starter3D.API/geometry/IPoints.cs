@@ -7,6 +7,7 @@
   /// </summary>
   public interface IPoints : IShape
   {
-     
+      void AddPoint(IVertex vertex);
+      void Clear();
   }
 }

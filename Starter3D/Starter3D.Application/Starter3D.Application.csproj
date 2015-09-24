@@ -72,6 +72,10 @@
       <Project>{3567CAD0-DE95-4BA8-98DE-750B75DCB45A}</Project>
       <Name>Starter3D.API</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Starter3D.Plugin.CurveEditor\Starter3D.Plugin.CurveEditor.csproj">
+      <Project>{bcc1dc11-6239-4301-ad43-8ef8ea35c9c1}</Project>
+      <Name>Starter3D.Plugin.CurveEditor</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Starter3D.Plugin.PixelShader\Starter3D.Plugin.PixelShader.csproj">
       <Project>{5407e771-ef7f-4b2c-8c75-a34720b2732f}</Project>
       <Name>Starter3D.Plugin.PixelShader</Name>

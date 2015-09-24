@@ -19,7 +19,10 @@ namespace Starter3D.API.scene.nodes
         public ISceneNode Parent
         {
             get { return _parent; }
-            set { _parent = value; }
+            set
+            {
+                _parent = value;
+            }
         }
 
 

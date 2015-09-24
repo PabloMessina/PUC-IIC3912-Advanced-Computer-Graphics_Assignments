@@ -138,7 +138,7 @@ namespace Starter3D.API.geometry
             _material.Configure(renderer);
             renderer.LoadObject(_name);
             renderer.SetVerticesData(_name, GetVerticesData());
-            renderer.SetFacesData(_name, GetFaceData());
+            renderer.SetIndexData(_name, GetFaceData());
             _vertices.First().Configure(_name, _material.Shader.Name, renderer); //We use the first vertex as representatve to configure the vertex info of the renderer
         }
 

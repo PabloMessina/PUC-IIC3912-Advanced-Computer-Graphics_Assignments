@@ -120,7 +120,7 @@ namespace Starter3D.Application.ui
 
     private void OnMouseWheel(object sender, MouseWheelEventArgs e)
     {
-      _controller.MouseWheel(e.Delta / 100, (int)e.GetPosition(this).X, (int)e.GetPosition(this).X);
+      _controller.MouseWheel(e.Delta / 100, (int)e.GetPosition(this).X, (int)e.GetPosition(this).Y);
     }
 
     private void OnKeyPress(object sender, KeyEventArgs e)

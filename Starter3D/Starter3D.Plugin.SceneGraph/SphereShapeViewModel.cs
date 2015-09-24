@@ -10,26 +10,29 @@ namespace Starter3D.Plugin.SceneGraph
     public class SphereShapeViewModel : ViewModelBase
     {
         private ShapeNode _sphereShape;
-        private float _angularVelRadians;
-        private float _angularVelDegrees;
+        private double _angularVelRadians;
+        private double _angularVelDegrees;
         public ShapeNode SphereShape
         {
             get { return _sphereShape; }
         }
 
-        public float AngularVelocityRadians
+        public double AngularVelocityRadians
         {
             get { return _angularVelRadians; }
         }
 
-        public float AngularVelocityDegrees
+        public double AngularVelocityDegrees
         {
             get { return _angularVelDegrees; }
             set {
                 if (_angularVelDegrees != value)
                 {
+                    if (double.IsNaN(value))
+                        return;
+
                     _angularVelDegrees = value;
-                    _angularVelRadians = value * (float)Math.PI / 180;
+                    _angularVelRadians = value * Math.PI / 180;
                     OnPropertyChanged("AngularVelocityDegrees");
                 }
             }

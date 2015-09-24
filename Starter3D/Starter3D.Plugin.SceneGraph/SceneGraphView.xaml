@@ -48,7 +48,7 @@
             <StackPanel Orientation="Horizontal">
                 <Slider x:Name ="angleSlider" Maximum="360" Width="160"
                         Value="{Binding PickedShape.RotationAngle}"></Slider>
-                <TextBlock Text="{Binding PickedShape.RotationAngle}"
+                <TextBlock Text="{Binding PickedShape.RotationAngle,StringFormat={}{0:N2} degrees}"
                            Background="White" Padding="3" Margin="2"></TextBlock>
             </StackPanel>
         </StackPanel>
@@ -99,8 +99,7 @@
                                 <StackPanel Orientation="Horizontal">
                                     <Slider x:Name="velSlider" Minimum="-25" Maximum="25" Width="130"
                                             Value="{Binding AngularVelocityDegrees}" />
-                                    <TextBlock Text="{Binding AngularVelocityDegrees}"/>
-                                    <TextBlock Text=" degrees/frame"/>
+                                    <TextBlock Text="{Binding Path = AngularVelocityDegrees, StringFormat={}{0:N2} degrees/frame }"/>
                                 </StackPanel>
                             </StackPanel>
                         </DataTemplate>

@@ -7,6 +7,7 @@
   /// </summary>
   public interface ICurve : IShape
   {
-     
+      void AddPoint(IVertex vertex);
+      void Clear();
   }
 }
