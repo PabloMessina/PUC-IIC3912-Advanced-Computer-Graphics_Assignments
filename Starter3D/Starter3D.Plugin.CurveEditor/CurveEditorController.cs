@@ -128,8 +128,6 @@ namespace Starter3D.Plugin.CurveEditor
         }
 
 
-
-
         public CurveEditorController(IRenderer renderer, ISceneReader sceneReader, IResourceManager resourceManager)
         {
             if (renderer == null) throw new ArgumentNullException("renderer");
@@ -218,7 +216,7 @@ namespace Starter3D.Plugin.CurveEditor
             if (_pointList.Count == 4)
                 _curve.AddPoint(new Vertex(p1.Xyz, dummyNormal, dummyTextureCoord));
 
-            var pointMatrix = new Matrix4(p0, p1, p2, p3);
+            var pointMatrix = new Matrix4(p0, p1, p2, p3);           
             var productMatrix = _baseMatrix_CatmullRom * pointMatrix;
 
             var tvector = new Vector4(1, 0, 0, 0);
@@ -354,7 +352,7 @@ namespace Starter3D.Plugin.CurveEditor
             }
         }
 
-        private void ClearAll()
+        internal void ClearAll()
         {
             _pointList.Clear();
             _curve.Clear();
@@ -375,8 +373,6 @@ namespace Starter3D.Plugin.CurveEditor
 
         public void KeyDown(int key)
         {
-            if (key == (int)ConsoleKey.Spacebar)
-                ClearAll();
         }
 
         public void UpdateSize(double width, double height)

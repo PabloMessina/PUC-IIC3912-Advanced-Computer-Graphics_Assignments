@@ -17,6 +17,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starter3D.Plugin.SceneGraph
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starter3D.Plugin.CurveEditor", "Starter3D.Plugin.CurveEditor\Starter3D.Plugin.CurveEditor.csproj", "{BCC1DC11-6239-4301-AD43-8EF8EA35C9C1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starter3D.Plugin.RollerCoasterEditor", "Starter3D.Plugin.RollerCoasterEditor\Starter3D.Plugin.RollerCoasterEditor.csproj", "{2BAF31AB-4070-49FE-993B-3FF0BB7B98AF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -185,6 +187,25 @@ Global
 		{BCC1DC11-6239-4301-AD43-8EF8EA35C9C1}.Release2|Mixed Platforms.Build.0 = Release|Any CPU
 		{BCC1DC11-6239-4301-AD43-8EF8EA35C9C1}.Release2|x64.ActiveCfg = Release|Any CPU
 		{BCC1DC11-6239-4301-AD43-8EF8EA35C9C1}.Release2|x86.ActiveCfg = Release|Any CPU
+		{2BAF31AB-4070-49FE-993B-3FF0BB7B98AF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2BAF31AB-4070-49FE-993B-3FF0BB7B98AF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2BAF31AB-4070-49FE-993B-3FF0BB7B98AF}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{2BAF31AB-4070-49FE-993B-3FF0BB7B98AF}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{2BAF31AB-4070-49FE-993B-3FF0BB7B98AF}.Debug|x64.ActiveCfg = Debug|x64
+		{2BAF31AB-4070-49FE-993B-3FF0BB7B98AF}.Debug|x64.Build.0 = Debug|x64
+		{2BAF31AB-4070-49FE-993B-3FF0BB7B98AF}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{2BAF31AB-4070-49FE-993B-3FF0BB7B98AF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2BAF31AB-4070-49FE-993B-3FF0BB7B98AF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2BAF31AB-4070-49FE-993B-3FF0BB7B98AF}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{2BAF31AB-4070-49FE-993B-3FF0BB7B98AF}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{2BAF31AB-4070-49FE-993B-3FF0BB7B98AF}.Release|x64.ActiveCfg = Release|Any CPU
+		{2BAF31AB-4070-49FE-993B-3FF0BB7B98AF}.Release|x86.ActiveCfg = Release|Any CPU
+		{2BAF31AB-4070-49FE-993B-3FF0BB7B98AF}.Release2|Any CPU.ActiveCfg = Release|Any CPU
+		{2BAF31AB-4070-49FE-993B-3FF0BB7B98AF}.Release2|Any CPU.Build.0 = Release|Any CPU
+		{2BAF31AB-4070-49FE-993B-3FF0BB7B98AF}.Release2|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{2BAF31AB-4070-49FE-993B-3FF0BB7B98AF}.Release2|Mixed Platforms.Build.0 = Release|Any CPU
+		{2BAF31AB-4070-49FE-993B-3FF0BB7B98AF}.Release2|x64.ActiveCfg = Release|Any CPU
+		{2BAF31AB-4070-49FE-993B-3FF0BB7B98AF}.Release2|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

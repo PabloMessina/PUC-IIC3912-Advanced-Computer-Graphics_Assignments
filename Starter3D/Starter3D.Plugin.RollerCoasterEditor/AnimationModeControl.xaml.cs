@@ -13,22 +13,23 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace Starter3D.Plugin.CurveEditor
+namespace Starter3D.Plugin.RollerCoasterEditor
 {
     /// <summary>
-    /// Interaction logic for CurveEditorView.xaml
+    /// Interaction logic for AnimationModeControl.xaml
     /// </summary>
-    public partial class CurveEditorView : UserControl
+    public partial class AnimationModeControl : UserControl
     {
-        public CurveEditorView()
+        public AnimationModeControl()
         {
             InitializeComponent();
+            this.Loaded += AnimationModeControl_Loaded;
         }
 
-        private void Button_Click(object sender, RoutedEventArgs e)
+        void AnimationModeControl_Loaded(object sender, RoutedEventArgs e)
         {
-            var controller = (CurveEditorController)this.DataContext;
-            controller.ClearAll();
+            var controller = this.DataContext as RollerCoasterEditorController;
+            controller.SetMode(Mode.RunningAnimation);
         }
     }
 }

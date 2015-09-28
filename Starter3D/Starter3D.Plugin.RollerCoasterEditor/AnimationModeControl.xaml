@@ -1,0 +1,35 @@
+﻿<UserControl x:Class="Starter3D.Plugin.RollerCoasterEditor.AnimationModeControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             d:DesignHeight="300" d:DesignWidth="300">
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis" />
+    </UserControl.Resources>
+    <StackPanel Visibility="{Binding Path=CanRunAnimation, Converter={StaticResource BoolToVis}}"
+                HorizontalAlignment="Left" Width="auto">
+        <CheckBox IsChecked="{Binding FollowCart}">Follow Cart</CheckBox>
+        <TextBlock>
+            <Run Text="Velocity: "/>
+            <Run Text="{Binding CartVelocity, StringFormat={}{0:N2}}"/>
+            <Run Text=" units/second"/>
+        </TextBlock>
+        <TextBlock>
+            <Run Text="Height: "/>
+            <Run Text="{Binding CartHeight, StringFormat={}{0:N2}}"/>
+            <Run Text=" units"/>
+        </TextBlock>
+        <TextBlock>
+            <Run Text="Max Height: "/>
+            <Run Text="{Binding MaxHeight, StringFormat={}{0:N2}}"/>
+            <Run Text=" units"/>
+        </TextBlock>
+        <TextBlock>
+            <Run Text="Min Height: "/>
+            <Run Text="{Binding MinHeight, StringFormat={}{0:N2}}"/>
+            <Run Text=" units"/>
+        </TextBlock>
+    </StackPanel>
+</UserControl>

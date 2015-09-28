@@ -1,0 +1,45 @@
+﻿<UserControl x:Class="Starter3D.Plugin.RollerCoasterEditor.EditionModeControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             d:DesignHeight="300" d:DesignWidth="300">
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis" />
+    </UserControl.Resources>
+    <Grid>
+        <StackPanel>
+            <RadioButton IsChecked="True" Checked="RadioButton_Checked">Dropping Points</RadioButton>
+            <RadioButton Checked="RadioButton_Checked">Picking Points</RadioButton>
+            <RadioButton Checked="RadioButton_Checked">Show Spline Closed</RadioButton>
+            <RadioButton Checked="RadioButton_Checked">Show as Roller Coaster</RadioButton>
+            <Button Width="auto" HorizontalAlignment="Left"
+                    Visibility ="{Binding Path=HasPickedPoint, Converter={StaticResource BoolToVis}}"
+                    Click="DeletePoint_Click">
+                Delete picked point</Button>
+            <Separator HorizontalAlignment="Left"/>
+            <StackPanel Orientation="Horizontal">
+                <Button Width="auto" HorizontalAlignment="Left" Click="GenerateRollerCoaster_Click">
+                    <TextBlock TextWrapping="WrapWithOverflow" TextAlignment="Center" Width="80">
+                        Generate RollerCoaster Randomly</TextBlock>
+                </Button>
+                <Button Margin="5,0,0,0" Click="ClearRollerCoaster_Click">
+                    <TextBlock TextWrapping="WrapWithOverflow" TextAlignment="Center" Width="80">
+                        Clear RollerCoaster</TextBlock>
+                </Button>
+            </StackPanel>
+            <Separator/>
+            <StackPanel Orientation="Horizontal">                
+                <Button Click="SaveRollerCoaster_Click">
+                    <TextBlock TextWrapping="WrapWithOverflow" TextAlignment="Center" Width="80">
+                        Save RollerCoaster as file</TextBlock>
+                </Button>
+                <Button Margin="5,0,0,0" Click="LoadRollerCoaster_Click">
+                    <TextBlock TextWrapping="WrapWithOverflow" TextAlignment="Center" Width="80">
+                        Load an existing RollerCoaster</TextBlock>
+                </Button>
+            </StackPanel>
+        </StackPanel>
+    </Grid>
+</UserControl>

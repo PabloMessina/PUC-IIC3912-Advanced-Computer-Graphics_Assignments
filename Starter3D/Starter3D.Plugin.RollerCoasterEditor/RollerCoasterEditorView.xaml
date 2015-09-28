@@ -1,0 +1,43 @@
+﻿<UserControl x:Class="Starter3D.Plugin.RollerCoasterEditor.RollerCoasterEditorView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local ="clr-namespace:Starter3D.Plugin.RollerCoasterEditor"
+             xmlns:sys ="clr-namespace:System;assembly=mscorlib"
+             mc:Ignorable="d" 
+             d:DesignHeight="300" d:DesignWidth="300" PreviewKeyDown="UserControl_KeyDown">
+    <UserControl.Resources>
+        <local:EditionModeControl x:Key="editionModeView" />
+        <local:AnimationModeControl x:Key="animationModeView" />
+    </UserControl.Resources>
+    <StackPanel Width="auto"  MaxWidth="300" VerticalAlignment="Top" HorizontalAlignment="Left" Background="#BBFFFFFF"
+                PreviewKeyDown="UserControl_KeyDown">
+        <ComboBox x:Name="ModeComboBox" SelectedIndex="0">
+            <sys:String>Edition Mode</sys:String>
+            <sys:String>Animation Mode</sys:String>
+        </ComboBox>
+        <ContentControl Margin="5">
+            <ContentControl.Style>
+                <Style TargetType="{x:Type ContentControl}">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding Path=SelectedItem,
+                                                  ElementName=ModeComboBox}"
+                                Value="Edition Mode">
+                            <Setter Property="Content"
+                                Value="{StaticResource editionModeView}"/>
+                        </DataTrigger>
+                                <DataTrigger Binding="{Binding Path=SelectedItem,
+                                                  ElementName=ModeComboBox}"
+                                Value="Animation Mode">
+                            <Setter Property="Content"
+                                Value="{StaticResource animationModeView}"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </ContentControl.Style>
+        </ContentControl>
+        <Separator/>
+        <TextBlock TextWrapping="Wrap" Width="auto" Foreground="Red" Text="{Binding UserFeedback}"/>
+    </StackPanel>    
+</UserControl>

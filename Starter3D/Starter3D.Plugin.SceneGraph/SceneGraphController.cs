@@ -361,7 +361,7 @@ namespace Starter3D.Plugin.SceneGraph
                         SetSelectedShapeNode(pickedShape);
                         pickedRoot = findRootShape(pickedShape);
                         var pos = new Vector4(pickedRoot.Position, 1);
-                        displacement_factor = Vector4.Transform(pos, inverse_viewMatrix).Xyz.Length / mouse_camera.Length;
+                        displacement_factor = Vector4.Transform(pos, viewMatrix).Xyz.Length / mouse_camera.Length;
                         rootOriginalPosition = pickedRoot.Position;
                         objectPicked = true;
 

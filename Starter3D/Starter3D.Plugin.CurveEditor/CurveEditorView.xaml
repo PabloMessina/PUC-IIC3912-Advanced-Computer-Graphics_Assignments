@@ -15,7 +15,8 @@
         <TextBlock VerticalAlignment="Center" Padding="2">Select the step size</TextBlock>
         <Slider Minimum="0.01" Maximum="1.0" Value="{Binding StepSize}"/>
         <TextBlock VerticalAlignment="Center" Padding="2">Select a spline:</TextBlock>
-        <ComboBox ItemsSource="{Binding CurveTypes}"
+        <ComboBox Margin="5,2,5,0" ItemsSource="{Binding CurveTypes}"
                   SelectedValue="{Binding SelectedCurveType}"/>
+        <Button Width="150" Margin="0,10,0,5" Click="Button_Click">Clear</Button>
     </StackPanel>
 </UserControl>

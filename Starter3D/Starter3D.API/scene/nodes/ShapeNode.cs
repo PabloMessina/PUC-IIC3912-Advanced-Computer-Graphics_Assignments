@@ -160,11 +160,11 @@ namespace Starter3D.API.scene.nodes
             _shape.Render(renderer, _modelTransform);
         }
 
-        private Matrix4 GetModelTransform(Vector3 translation, Quaternion rotation, Vector3 scale)
+        internal Matrix4 GetModelTransform(Vector3 translation, Quaternion rotation, Vector3 scale)
         {
-            var translation_m = Matrix4.CreateTranslation(_position);
-            var rotation_m = Matrix4.CreateFromQuaternion(_rotation);
-            var scale_m = Matrix4.CreateScale(_scale);
+            var translation_m = Matrix4.CreateTranslation(translation);
+            var rotation_m = Matrix4.CreateFromQuaternion(rotation);
+            var scale_m = Matrix4.CreateScale(scale);
             return scale_m * rotation_m * translation_m;
         }
 
