@@ -82,10 +82,10 @@ namespace Starter3D.Plugin.RollerCoasterEditor
         private Matrix4 _skyboxTransform;
 
         private float _sleeperLength = 1.6f;
-        private float _sleeperWidth = 2.5f;
-        private float _sleeperHeight = 0.3f;
-        private float _railWidth = 0.15f;
-        private float _railHeight =0.15f;
+        private float _sleeperWidth = 0.5f;
+        private float _sleeperHeight = 0.2f;
+        private float _railWidth = 0.25f;
+        private float _railHeight =0.25f;
 
         private bool _isRightDown;
         private bool _isLeftDown;
@@ -296,19 +296,21 @@ namespace Starter3D.Plugin.RollerCoasterEditor
                     _bunny = sn;
                 }
             }
+
             _curve = new Curve("curve", 1);
-            _curve.Material = _resourceManager.GetMaterial("yellowSpecular");
+            _curve.Material = _resourceManager.GetMaterial("orange");
+
             _pointPrototype.Shape.Material = _resourceManager.GetMaterial("greenSpecular");
 
-            _railSegmentPrototype = new Cube("cube", -0.5f, -0.5f, 0, 1f, 1f, 1f);
-            _railSegmentPrototype.Material = _resourceManager.GetMaterial("greenSpecular");
+            _railSegmentPrototype = new Cube("railSegment", -0.5f, -0.5f, 0, 1f, 1f, 1f);
+            _railSegmentPrototype.Material = _resourceManager.GetMaterial("redSpecular");
 
-            _sleeperPrototype = new Cube("cube", -0.5f, -0.5f, 0, 1f, 1f, 1f);
+            _sleeperPrototype = new Cube("sleeper", -0.5f, -0.5f, 0, 1f, 1f, 1f);
             _sleeperPrototype.Material = _resourceManager.GetMaterial("greenSpecular");
            
             float size = 800.0f;
             float hsize = size*0.5f;
-            _skybox = new Cube("cube", -hsize, -hsize, -hsize, size, size, size);
+            _skybox = new Cube("skybox", -hsize, -hsize, -hsize, size, size, size);
             _skybox.Material = _resourceManager.GetMaterial("skyboxMaterial");
 
             _curveHandler = CatmullRomCurveHandler.GetInstance();
@@ -1211,7 +1213,7 @@ namespace Starter3D.Plugin.RollerCoasterEditor
             _leftRailSegmentTransforms.Clear();
             _rightRailSegmentTransforms.Clear();
             _sleeperTransforms.Clear();
-            _rollerCoasterDirty = false;
+            _rollerCoasterDirty = true;
             _curveClosed = false;
             RefreshMode();
         }

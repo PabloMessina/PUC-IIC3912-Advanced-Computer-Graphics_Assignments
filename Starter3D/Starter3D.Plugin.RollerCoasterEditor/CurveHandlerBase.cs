@@ -64,7 +64,7 @@ namespace Starter3D.Plugin.RollerCoasterEditor
             eye = S1 - N1 * sleeperLength * 0.5f;
             target = S1 + N1 * sleeperLength * 0.5f;
             up = B1;
-            transform = ComputeCubeTransform(eye, target, up, railWidth, railHeight);
+            transform = ComputeCubeTransform(eye, target, up, sleeperWidth, sleeperHeight);
             sleeperTransforms.Add(transform);
         }
 
