@@ -72,9 +72,9 @@
       <Project>{3567CAD0-DE95-4BA8-98DE-750B75DCB45A}</Project>
       <Name>Starter3D.API</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Starter3D.Plugin.RollerCoasterEditor\Starter3D.Plugin.RollerCoasterEditor.csproj">
-      <Project>{2baf31ab-4070-49fe-993b-3ff0bb7b98af}</Project>
-      <Name>Starter3D.Plugin.RollerCoasterEditor</Name>
+    <ProjectReference Include="..\Starter3D.Plugin.Physics\Starter3D.Plugin.Physics.csproj">
+      <Project>{604da411-41cf-4452-9f3f-b05b199359be}</Project>
+      <Name>Starter3D.Plugin.Physics</Name>
     </ProjectReference>
     <ProjectReference Include="..\Starter3D.Renderers\Starter3D.Renderers.csproj">
       <Project>{78127754-23c1-4d69-a528-ae46cad6aec0}</Project>

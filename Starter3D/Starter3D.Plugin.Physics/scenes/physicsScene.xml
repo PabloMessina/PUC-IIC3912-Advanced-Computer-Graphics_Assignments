@@ -1,0 +1,8 @@
+﻿<?xml version="1.0" encoding="UTF-8" ?>
+<Scene>  
+  <Shape shapeType='Mesh' shapeName='sphere' filePath='meshes/sphere.obj' material='asteroidMaterial'/>
+  <PerspectiveCamera nearClip="0.1" farClip="10000" fieldOfView="45" aspectRatio="1" order="0" position="0,200,200" target="0,20,0" up="0,0,1"/>
+  <PointLight color="0.6, 0.6, 0.6" position='-300, 300, 0'/>
+  <AmbientLight color="0.4, 0.4, 0.4"/>
+
+</Scene>

@@ -9,215 +9,243 @@ using Starter3D.API.utils;
 
 namespace Starter3D.Renderers
 {
-  public class CompositeRenderer : IRenderer
-  {
-    private readonly List<IRenderer> _renderers = new List<IRenderer>();
-    private readonly OpenGLRenderer _glRenderer;
-    private readonly Direct3DRenderer _d3dRenderer;
-
-    public CompositeRenderer()
+    public class CompositeRenderer : IRenderer
     {
-      _glRenderer = new OpenGLRenderer();
-      _d3dRenderer = new Direct3DRenderer();
-      _renderers.Add(_glRenderer);
-      _renderers.Add(_d3dRenderer);
-    }
+        private readonly List<IRenderer> _renderers = new List<IRenderer>();
+        private readonly OpenGLRenderer _glRenderer;
+        private readonly Direct3DRenderer _d3dRenderer;
 
-    public Direct3DRenderer D3DRenderer
-    {
-      get { return _d3dRenderer; }
-    }
-
-    public OpenGLRenderer GlRenderer
-    {
-      get { return _glRenderer; }
-    }
-
-    public void LoadObject(string objectName)
-    {
-      foreach (var renderer in _renderers)
-      {
-        renderer.LoadObject(objectName);
-      }
-    }
-
-    public void DrawTriangles(string objectName, int triangleCount)
-    {
-      foreach (var renderer in _renderers)
-      {
-        renderer.DrawTriangles(objectName, triangleCount);
-      }
-    }
-
-    public void DrawLines(string objectName, int lineCount, float lineWidth)
-    {
-        foreach (var renderer in _renderers)
+        public CompositeRenderer()
         {
-            renderer.DrawLines(objectName, lineCount, lineWidth);
+            _glRenderer = new OpenGLRenderer();
+            _d3dRenderer = new Direct3DRenderer();
+            _renderers.Add(_glRenderer);
+            _renderers.Add(_d3dRenderer);
         }
-    }
 
-    public void DrawPoints(string objectName, int pointCount, float pointSize)
-    {
-        foreach (var renderer in _renderers)
+        public Direct3DRenderer D3DRenderer
         {
-            renderer.DrawPoints(objectName, pointCount, pointSize);
+            get { return _d3dRenderer; }
         }
-    }
 
-    public void SetIndexData(string objectName, List<int> indices)
-    {
-      foreach (var renderer in _renderers)
-      {
-        renderer.SetIndexData(objectName, indices);
-      }
-    }
+        public OpenGLRenderer GlRenderer
+        {
+            get { return _glRenderer; }
+        }
 
-    public void SetVertexAttribute(string objectName, string shaderName, int index, string vertexPropertyName, int stride,
-      int offset)
-    {
-      foreach (var renderer in _renderers)
-      {
-        renderer.SetVertexAttribute(objectName, shaderName, index, vertexPropertyName, stride, offset);
-      }
-    }
+        public void LoadObject(string objectName)
+        {
+            foreach (var renderer in _renderers)
+            {
+                renderer.LoadObject(objectName);
+            }
+        }
 
-    public void LoadTexture(string textureName, int index, Bitmap texture, TextureMinFilter minFilter, TextureMagFilter magFilter)
-    {
-      foreach (var renderer in _renderers)
-      {
-        renderer.LoadTexture(textureName, index, texture, minFilter, magFilter);
-      }
-    }
+        public void DrawTriangles(string objectName, int triangleCount)
+        {
+            foreach (var renderer in _renderers)
+            {
+                renderer.DrawTriangles(objectName, triangleCount);
+            }
+        }
 
-    public void UseTexture(string textureName, string shader, string uniformShader)
-    {
-      foreach (var renderer in _renderers)
-      {
-        renderer.UseTexture(textureName, shader, uniformShader);
-      }
-    }
+        public void DrawLines(string objectName, int lineCount, float lineWidth)
+        {
+            foreach (var renderer in _renderers)
+            {
+                renderer.DrawLines(objectName, lineCount, lineWidth);
+            }
+        }
 
-    public void LoadShaders(string shaderName, string vertexShader, string fragmentShader)
-    {
-      foreach (var renderer in _renderers)
-      {
-        renderer.LoadShaders(shaderName, vertexShader, fragmentShader);
-      }
-    }
+        public void DrawPoints(string objectName, int pointCount, float pointSize)
+        {
+            foreach (var renderer in _renderers)
+            {
+                renderer.DrawPoints(objectName, pointCount, pointSize);
+            }
+        }
 
-    public void UseShader(string shaderName)
-    {
-      foreach (var renderer in _renderers)
-      {
-        renderer.UseShader(shaderName);
-      }
-    }
+        public void SetIndexData(string objectName, List<int> indices)
+        {
+            foreach (var renderer in _renderers)
+            {
+                renderer.SetIndexData(objectName, indices);
+            }
+        }
 
-    public void SetNumericParameter(string name, float number)
-    {
-      foreach (var renderer in _renderers)
-      {
-        renderer.SetNumericParameter(name, number);
-      }
-    }
+        public void SetVertexAttribute(string objectName, string shaderName, int index, string vertexPropertyName, int stride,
+          int offset)
+        {
+            foreach (var renderer in _renderers)
+            {
+                renderer.SetVertexAttribute(objectName, shaderName, index, vertexPropertyName, stride, offset);
+            }
+        }
 
-    public void SetNumericParameter(string name, float number, string shader)
-    {
-      foreach (var renderer in _renderers)
-      {
-        renderer.SetNumericParameter(name, number, shader);
-      }
-    }
+        public void DrawInstancedTriangles(string objectName, int triangleCount, int instanceCount)
+        {
+            foreach (var renderer in _renderers)
+            {
+                renderer.DrawInstancedTriangles(objectName, triangleCount, instanceCount);
+            }
+        }
 
-    public void EnableZBuffer(bool enable)
-    {
-      foreach (var renderer in _renderers)
-      {
-        renderer.EnableZBuffer(enable);
-      }
-    }
+        public void SetInstanceData(string objectName, List<Matrix4> instanceData)
+        {
+            foreach (var renderer in _renderers)
+            {
+                renderer.SetInstanceData(objectName, instanceData);
+            }
+        }
 
-    public void EnableWireframe(bool enable)
-    {
-      foreach (var renderer in _renderers)
-      {
-        renderer.EnableWireframe(enable);
-      }
-    }
+        public void SetInstanceAttribute(string objectName, string shaderName, int index, string instancePropertyName, int stride,
+          int offset)
+        {
+            foreach (var renderer in _renderers)
+            {
+                renderer.SetInstanceAttribute(objectName, shaderName, index, instancePropertyName, stride, offset);
+            }
+        }
 
-    public void SetCullMode(CullMode cullMode)
-    {
-      foreach (var renderer in _renderers)
-      {
-        renderer.SetCullMode(cullMode);
-      }
-    }
+        public void LoadTexture(string textureName, int index, Bitmap texture, TextureMinFilter minFilter, TextureMagFilter magFilter)
+        {
+            foreach (var renderer in _renderers)
+            {
+                renderer.LoadTexture(textureName, index, texture, minFilter, magFilter);
+            }
+        }
 
-    public void SetBackgroundColor(float r, float g, float b)
-    {
-      foreach (var renderer in _renderers)
-      {
-        renderer.SetBackgroundColor(r,g,b);
-      }
-    }
+        public void UseTexture(string textureName, string shader, string uniformShader)
+        {
+            foreach (var renderer in _renderers)
+            {
+                renderer.UseTexture(textureName, shader, uniformShader);
+            }
+        }
 
-    public void SetVectorArrayParameter(string name, int index, Vector3 vector, string shader)
-    {
-      foreach (var renderer in _renderers)
-      {
-        renderer.SetVectorArrayParameter(name, index, vector, shader);
-      }
-    }
+        public void LoadShaders(string shaderName, string vertexShader, string fragmentShader)
+        {
+            foreach (var renderer in _renderers)
+            {
+                renderer.LoadShaders(shaderName, vertexShader, fragmentShader);
+            }
+        }
 
-    public void SetVectorArrayParameter(string name, int index, Vector3 vector)
-    {
-      foreach (var renderer in _renderers)
-      {
-        renderer.SetVectorArrayParameter(name, index, vector);
-      }
-    }
+        public void UseShader(string shaderName)
+        {
+            foreach (var renderer in _renderers)
+            {
+                renderer.UseShader(shaderName);
+            }
+        }
 
-    public void SetVectorParameter(string name, Vector3 vector, string shader)
-    {
-      foreach (var renderer in _renderers)
-      {
-        renderer.SetVectorParameter(name, vector, shader);
-      }
-    }
+        public void SetNumericParameter(string name, float number)
+        {
+            foreach (var renderer in _renderers)
+            {
+                renderer.SetNumericParameter(name, number);
+            }
+        }
 
-    public void SetVectorParameter(string name, Vector3 vector)
-    {
-      foreach (var renderer in _renderers)
-      {
-        renderer.SetVectorParameter(name, vector);
-      }
-    }
+        public void SetNumericParameter(string name, float number, string shader)
+        {
+            foreach (var renderer in _renderers)
+            {
+                renderer.SetNumericParameter(name, number, shader);
+            }
+        }
 
-    public void SetMatrixParameter(string name, Matrix4 matrix, string shader)
-    {
-      foreach (var renderer in _renderers)
-      {
-        renderer.SetMatrixParameter(name, matrix, shader);
-      }
-    }
+        public void EnableZBuffer(bool enable)
+        {
+            foreach (var renderer in _renderers)
+            {
+                renderer.EnableZBuffer(enable);
+            }
+        }
 
-    public void SetMatrixParameter(string name, Matrix4 matrix)
-    {
-      foreach (var renderer in _renderers)
-      {
-        renderer.SetMatrixParameter(name, matrix);
-      }
-    }
+        public void EnableWireframe(bool enable)
+        {
+            foreach (var renderer in _renderers)
+            {
+                renderer.EnableWireframe(enable);
+            }
+        }
 
-   
+        public void SetCullMode(CullMode cullMode)
+        {
+            foreach (var renderer in _renderers)
+            {
+                renderer.SetCullMode(cullMode);
+            }
+        }
 
-    public void SetVerticesData(string objectName, List<Vector3> data)
-    {
-      foreach (var renderer in _renderers)
-      {
-        renderer.SetVerticesData(objectName, data);
-      }
+        public void SetBackgroundColor(float r, float g, float b)
+        {
+            foreach (var renderer in _renderers)
+            {
+                renderer.SetBackgroundColor(r, g, b);
+            }
+        }
+
+        public void SetVectorArrayParameter(string name, int index, Vector3 vector, string shader)
+        {
+            foreach (var renderer in _renderers)
+            {
+                renderer.SetVectorArrayParameter(name, index, vector, shader);
+            }
+        }
+
+        public void SetVectorArrayParameter(string name, int index, Vector3 vector)
+        {
+            foreach (var renderer in _renderers)
+            {
+                renderer.SetVectorArrayParameter(name, index, vector);
+            }
+        }
+
+        public void SetVectorParameter(string name, Vector3 vector, string shader)
+        {
+            foreach (var renderer in _renderers)
+            {
+                renderer.SetVectorParameter(name, vector, shader);
+            }
+        }
+
+        public void SetVectorParameter(string name, Vector3 vector)
+        {
+            foreach (var renderer in _renderers)
+            {
+                renderer.SetVectorParameter(name, vector);
+            }
+        }
+
+        public void SetMatrixParameter(string name, Matrix4 matrix, string shader)
+        {
+            foreach (var renderer in _renderers)
+            {
+                renderer.SetMatrixParameter(name, matrix, shader);
+            }
+        }
+
+        public void SetMatrixParameter(string name, Matrix4 matrix)
+        {
+            foreach (var renderer in _renderers)
+            {
+                renderer.SetMatrixParameter(name, matrix);
+            }
+        }
+
+
+
+        public void SetVerticesData(string objectName, List<Vector3> data)
+        {
+            foreach (var renderer in _renderers)
+            {
+                renderer.SetVerticesData(objectName, data);
+            }
+        }
+
+
+
     }
-  }
 }

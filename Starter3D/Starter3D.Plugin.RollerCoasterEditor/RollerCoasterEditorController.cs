@@ -115,8 +115,6 @@ namespace Starter3D.Plugin.RollerCoasterEditor
         private Vector3 _cartDirection;
         private float _segmentLength;
         private Vector3 _cameraRelativeDirection;
-        private float _pendingDistance;
-        private float _segmentDistanceTraveled;
         private float _maxHeight;
         private float _minHeight;
 
@@ -434,32 +432,27 @@ namespace Starter3D.Plugin.RollerCoasterEditor
                 double potentialEnergy = (_cartPosition.Y - _minHeight) * G;
                 CartVelocity = Math.Sqrt(2.0 *(_totalEnergy - potentialEnergy));
 
-                _pendingDistance += (float)(_cartVelocity * elapsedTime);
-                float distanceToTravel = Math.Min(_pendingDistance, _segmentLength - _segmentDistanceTraveled);
-                _pendingDistance -= distanceToTravel;
-                _segmentDistanceTraveled += distanceToTravel;
+                float distanceToTravel = (float)(_cartVelocity * elapsedTime);
 
-                //if (_pendingDistance > 10)
-                  //  _pendingDistance = 10;
+                while (distanceToTravel > _segmentLength)
+                {
+                    distanceToTravel -= _segmentLength;
 
-                _cartPosition+= distanceToTravel * _cartDirection;
+                     _animationIndex = (_animationIndex + 1) % _animationPoints.Count;
+                     _currentAnimationPoint = _nextAnimationPoint;
+                     _nextAnimationPoint = _animationPoints[_animationIndex];
+                     _cartDirection = (_nextAnimationPoint.Position - _currentAnimationPoint.Position).Normalized();
+                     _segmentLength = (_nextAnimationPoint.Position - _currentAnimationPoint.Position).Length;
 
-                if (_segmentDistanceTraveled >= _segmentLength)
-                {           
-                    _animationIndex = (_animationIndex + 1) % _animationPoints.Count;
-                    _currentAnimationPoint = _nextAnimationPoint;
-                    _nextAnimationPoint = _animationPoints[_animationIndex];
-                    _cartDirection = (_nextAnimationPoint.Position - _currentAnimationPoint.Position).Normalized();
-                    _segmentLength = (_nextAnimationPoint.Position - _currentAnimationPoint.Position).Length;
+                     _cartPosition = _currentAnimationPoint.Position;
 
-                    _cartPosition = _currentAnimationPoint.Position;
-
-                    _segmentDistanceTraveled = 0;
-
-                    if (_followCart)
-                        _scene.CurrentCamera.Up = _currentAnimationPoint.Up;
-
+                     if (_followCart)
+                         _scene.CurrentCamera.Up = _currentAnimationPoint.Up;
                 }
+
+                _segmentLength -= distanceToTravel;
+                _cartPosition += distanceToTravel * _cartDirection;
+             
                 if (_followCart)
                 {
                     var camPosition = _cartPosition + _currentAnimationPoint.Direction * -3.0f + _currentAnimationPoint.Up * 2.0f;
@@ -505,9 +498,6 @@ namespace Starter3D.Plugin.RollerCoasterEditor
             _cameraRelativeDirection = SLIGHTLY_DOWN;
 
             _cartTransform = Matrix4.CreateTranslation(_cartPosition);
-
-            _pendingDistance = 0;
-            _segmentDistanceTraveled = 0;
 
             _startTime = DateTime.Now;
 
@@ -796,6 +786,9 @@ namespace Starter3D.Plugin.RollerCoasterEditor
         {
             _width = width;
             _height = height;
+            if (_scene.CurrentCamera is PerspectiveCamera)
+                (_scene.CurrentCamera as PerspectiveCamera).AspectRatio = (float)_width / (float)_height;
+            
         }
 
         #region Keyword Input Handling
@@ -1165,7 +1158,7 @@ namespace Starter3D.Plugin.RollerCoasterEditor
             sb.Append("</spline>");
             return sb.ToString();
         }
-        public void LoadSplienFromXmlFile(string path) {
+        public void LoadSplineFromXmlFile(string path) {
 
             try
             {

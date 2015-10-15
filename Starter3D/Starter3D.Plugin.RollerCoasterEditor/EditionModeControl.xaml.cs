@@ -114,7 +114,7 @@ namespace Starter3D.Plugin.RollerCoasterEditor
             if (result == true)
             {
                 var controller = this.DataContext as RollerCoasterEditorController;
-                controller.LoadSplienFromXmlFile(dlg.FileName);
+                controller.LoadSplineFromXmlFile(dlg.FileName);
             }
         }
 

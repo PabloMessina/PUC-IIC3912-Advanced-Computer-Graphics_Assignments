@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
 using SlimDX;
@@ -26,6 +27,7 @@ namespace Starter3D.Renderers
             public List<InputElement> InputElements = new List<InputElement>();
             public Buffer VertexBuffer;
             public Buffer IndexBuffer;
+            public Buffer InstanceBuffer;
             public int IndexCount;
         }
 
@@ -102,6 +104,7 @@ namespace Starter3D.Renderers
             _semanticsTable.Add("inPosition", "POSITION");
             _semanticsTable.Add("inNormal", "NORMAL");
             _semanticsTable.Add("inTextureCoords", "TEXCOORD");
+            _semanticsTable.Add("instanceMatrix", "INSTANCE_TRANSFORM");
         }
 
         public void LoadObject(string objectName)
@@ -128,6 +131,7 @@ namespace Starter3D.Renderers
             _device.InputAssembler.SetIndexBuffer(_objectsHandleDictionary[objectName].IndexBuffer, Format.R32_UInt, 0);
             _device.DrawIndexed(_objectsHandleDictionary[objectName].IndexCount, 0, 0);
         }
+
         public void DrawLines(string objectName, int lineCount, float lineWidth)
         {
             if (!_objectsHandleDictionary.ContainsKey(objectName))
@@ -208,6 +212,65 @@ namespace Starter3D.Renderers
             if (!_objectsHandleDictionary.ContainsKey(objectName))
                 throw new ApplicationException("Object must be added to the renderer before setting its index data");
             var inputElement = new InputElement(_semanticsTable[vertexPropertyName], 0, Format.R32G32B32A32_Float, offset, 0);
+            _objectsHandleDictionary[objectName].InputElements.Add(inputElement);
+        }
+
+        public void DrawInstancedTriangles(string objectName, int triangleCount, int instanceCount)
+        {
+            if (!_objectsHandleDictionary.ContainsKey(objectName))
+                throw new ApplicationException("Object must be added to the renderer before drawing");
+            var effect = _shaderHandleDictionary[_currentShader].Effect;
+            var technique = effect.GetTechniqueByIndex(0);
+            var pass = technique.GetPassByIndex(0);
+            pass.Apply();
+            _device.InputAssembler.SetInputLayout(GetInputLayout(pass, _objectsHandleDictionary[objectName].InputElements.ToArray()));
+            _device.InputAssembler.SetPrimitiveTopology(PrimitiveTopology.TriangleList);
+            var vertexBufferBinding = new VertexBufferBinding(_objectsHandleDictionary[objectName].VertexBuffer,
+              OpenTK.Vector3.SizeInBytes * _objectsHandleDictionary[objectName].InputElements.Count(ie => ie.Classification != InputClassification.PerInstanceData), 0);
+            var instanceBufferBinding = new VertexBufferBinding(_objectsHandleDictionary[objectName].InstanceBuffer,
+              OpenTK.Vector4.SizeInBytes * _objectsHandleDictionary[objectName].InputElements.Count(ie => ie.Classification == InputClassification.PerInstanceData), 0);
+
+            _device.InputAssembler.SetVertexBuffers(0, new[] { vertexBufferBinding, instanceBufferBinding });
+            _device.InputAssembler.SetIndexBuffer(_objectsHandleDictionary[objectName].IndexBuffer, Format.R32_UInt, 0);
+            _device.DrawIndexedInstanced(_objectsHandleDictionary[objectName].IndexCount, instanceCount, 0, 0, 0);
+        }
+
+        public void SetInstanceData(string objectName, List<Matrix4> instanceData)
+        {
+            if (!_objectsHandleDictionary.ContainsKey(objectName))
+                throw new ApplicationException("Object must be added to the renderer before setting its vertex data");
+            if (instanceData.Count == 0)
+                return;
+            var verticesStream = new DataStream(instanceData.Count * OpenTK.Vector4.SizeInBytes * 4, true, true);
+            foreach (var matrix in instanceData)
+            {
+                verticesStream.Write(matrix.ToSlimDXMatrix());
+            }
+            verticesStream.Position = 0;
+            var bufferDesc = new BufferDescription
+            {
+                BindFlags = BindFlags.VertexBuffer,
+                CpuAccessFlags = CpuAccessFlags.None,
+                OptionFlags = ResourceOptionFlags.None,
+                SizeInBytes = instanceData.Count * OpenTK.Vector4.SizeInBytes * 4,
+                Usage = ResourceUsage.Default
+            };
+            var instanceBuffer = new Buffer(_device, verticesStream, bufferDesc);
+            _objectsHandleDictionary[objectName].InstanceBuffer = instanceBuffer;
+        }
+
+        public void SetInstanceAttribute(string objectName, string shaderName, int index, string instancePropertyName, int stride,
+          int offset)
+        {
+            if (!_objectsHandleDictionary.ContainsKey(objectName))
+                throw new ApplicationException("Object must be added to the renderer before setting its index data");
+            var inputElement = new InputElement(_semanticsTable[instancePropertyName], 0, Format.R32G32B32A32_Float, 0, 1, InputClassification.PerInstanceData, 1);
+            _objectsHandleDictionary[objectName].InputElements.Add(inputElement);
+            inputElement = new InputElement(_semanticsTable[instancePropertyName], 1, Format.R32G32B32A32_Float, InputElement.AppendAligned, 1, InputClassification.PerInstanceData, 1);
+            _objectsHandleDictionary[objectName].InputElements.Add(inputElement);
+            inputElement = new InputElement(_semanticsTable[instancePropertyName], 2, Format.R32G32B32A32_Float, InputElement.AppendAligned, 1, InputClassification.PerInstanceData, 1);
+            _objectsHandleDictionary[objectName].InputElements.Add(inputElement);
+            inputElement = new InputElement(_semanticsTable[instancePropertyName], 3, Format.R32G32B32A32_Float, InputElement.AppendAligned, 1, InputClassification.PerInstanceData, 1);
             _objectsHandleDictionary[objectName].InputElements.Add(inputElement);
         }
 
@@ -470,5 +533,8 @@ namespace Starter3D.Renderers
                 _inputLayouts[elements].Add(pass, new InputLayout(_device, pass.Description.Signature, elements));
             return _inputLayouts[elements][pass];
         }
+
+
+
     }
 }

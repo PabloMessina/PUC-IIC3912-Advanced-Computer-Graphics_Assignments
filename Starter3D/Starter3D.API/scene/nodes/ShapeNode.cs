@@ -30,6 +30,7 @@ namespace Starter3D.API.scene.nodes
         public IShape Shape
         {
             get { return _shape; }
+            set { _shape = value; }
         }
 
         public Quaternion Rotation

@@ -15,6 +15,7 @@ namespace Starter3D.API.geometry
         private readonly List<IFace> _faces = new List<IFace>();
         private IMaterial _material;
         private readonly string _name;
+        private int _copiesCount = 0;
 
         public Mesh(IMeshLoader meshLoader, string name = "default")
         {
@@ -189,11 +190,25 @@ namespace Starter3D.API.geometry
             return cross;
         }
 
-        private int GetTriangleCount()
+        public int GetTriangleCount()
         {
             return FacesCount * 3;
         }
-
+        
+        public IMesh Clone()
+        {
+            Mesh clone = new Mesh(this._name + "_" + _copiesCount++);
+            foreach (var vertex in _vertices)
+            {
+                clone.AddVertex(vertex);
+            }
+            foreach (var face in _faces)
+            {
+                clone.AddFace(face);
+            }
+            clone.Material = _material;
+            return clone;
+        }
 
     }
 }

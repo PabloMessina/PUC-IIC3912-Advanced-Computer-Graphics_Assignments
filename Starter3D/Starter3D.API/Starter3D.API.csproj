@@ -76,6 +76,8 @@
   <ItemGroup>
     <Compile Include="controller\IController.cs" />
     <Compile Include="geometry\Curve.cs" />
+    <Compile Include="geometry\IInstancedShape.cs" />
+    <Compile Include="geometry\InstancedMesh.cs" />
     <Compile Include="geometry\loaders\DxfMeshLoader.cs" />
     <Compile Include="geometry\Points.cs" />
     <Compile Include="geometry\primitives\Cube.cs" />
