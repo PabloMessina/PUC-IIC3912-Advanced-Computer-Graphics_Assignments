@@ -36,7 +36,7 @@ namespace Starter3D.Plugin.Physics
         private void ToggleSimulation_Click(object sender, RoutedEventArgs e)
         {
             var btn = sender as Button;
-            if (btn.Content == "Pause Simulation")
+            if ((string)(btn.Content) == "Pause Simulation")
             {
                 _controller.PauseSimulation();
                 btn.Content = "Resume Simulation";
@@ -45,6 +45,19 @@ namespace Starter3D.Plugin.Physics
             {
                 _controller.ResumeSimulation();
                 btn.Content = "Pause Simulation";
+            }
+        }
+
+        private void CheckBox_Click(object sender, RoutedEventArgs e)
+        {
+            var cb = sender as CheckBox;
+            if (cb.IsChecked == true)
+            {
+                _controller.EnableCollisionDetection();
+            }
+            else
+            {
+                _controller.DisableCollisionDetection();
             }
         }
     }

@@ -32,28 +32,26 @@ namespace Starter3D.Plugin.Physics
         private float _rotAngle = (float)(Math.PI / 180 * 2f);
         private float _camVelocity = 8f;
         private bool _isRightDown = false;
-
-        private float EARTH_MASS = 15000;
         private float G = 9.81f;
-        private int _numberAsteroids = 500;
-        private float DT = 0.02f;
+        private int _numberAsteroids = 100;
+        private float DT = 0.01f;
 
         private Vector3 EARTH_INITIAL_POSITION = new Vector3(0, 50, -50);
         private Vector3 EARTH_INITIAL_VELOCITY = new Vector3(0, 0, 0);
+        private float EARTH_RADIUS = 200;
+        private float EARTH_MASS = 9000000;
         private Vector3 UP = new Vector3(1, 1, 1);
         private Vector3 NORMAL_TO_UP;
 
         private Matrix4 _earthToWorldTransform;
-        private SingleInstancedPhysicalObject _earth;
-        private MultiInstancedPhysicalObject _asteroids;
+        private SingleInstancedObject<Sphere> _earth;
+        private MultiInstancedObject<Sphere> _asteroids;
 
         private IMesh _sphereMesh;
 
         private Random _random = new Random();
 
         private PhysicsSolver _solver;
-
-        private DateTime _startTime;
 
         private readonly object _syncLock = new object();
         private bool _simulationPaused;
@@ -67,6 +65,7 @@ namespace Starter3D.Plugin.Physics
         private float _angleDelta = 0.01f;
         private float _earthRotAngle = 0;
         private static readonly float _2PI = (float)(2 * Math.PI);
+        private bool _checkCollisions = true;
 
 
         public Array Solvers
@@ -167,6 +166,7 @@ namespace Starter3D.Plugin.Physics
             _solver = RungeKuttaSolver.Instance;
             _currentSolver = Solver.RungeKutta;
             _simulationPaused = false;
+            PhysicsSolver.DT = DT;
 
             _view = new PhysicsView(this);
             _view.DataContext = this;
@@ -191,10 +191,11 @@ namespace Starter3D.Plugin.Physics
             InitEarth();
             InitAsteroids();
 
+            _solver.AddBoundingBoxXComponents(_earth.InstanceData);
+            _solver.AddBoundingBoxXComponents(_asteroids.InstancesData);
+
             _scene.ClearShapes();
             _scene.Configure(_renderer);
-
-            _startTime = DateTime.Now;
 
         }
 
@@ -203,15 +204,16 @@ namespace Starter3D.Plugin.Physics
             UP.Normalize();
             NORMAL_TO_UP = GetNormalizedNormal(UP);
             var target = EARTH_INITIAL_POSITION + NORMAL_TO_UP;
-            var earthData = new PhysicalObjectData(
+            var sphereClone = _sphereMesh.Clone();
+            var earthData = new Sphere(
                 EARTH_MASS,
                 EARTH_INITIAL_VELOCITY,
                 EARTH_INITIAL_POSITION,
                 Quaternion.Identity,
-                new Vector3(70));
-            var sphereClone = _sphereMesh.Clone();
+                sphereClone,
+                EARTH_RADIUS);
             sphereClone.Material = _resourceManager.GetMaterial("earthMaterial");
-            _earth = new SingleInstancedPhysicalObject(sphereClone, earthData);
+            _earth = new SingleInstancedObject<Sphere>(sphereClone, earthData);
             _earth.Configure(_renderer);
 
             _earthToWorldTransform = Matrix4.LookAt(EARTH_INITIAL_POSITION, target, UP).Inverted();
@@ -223,7 +225,7 @@ namespace Starter3D.Plugin.Physics
             var mesh = _sphereMesh.Clone();
             var instancedMesh = new InstancedMesh(mesh.Name, mesh);
             instancedMesh.Material = _resourceManager.GetMaterial("asteroidMaterial");
-            _asteroids = new MultiInstancedPhysicalObject(instancedMesh);
+            _asteroids = new MultiInstancedObject<Sphere>(instancedMesh);
             GenerateRandomAsteroids();
             _asteroids.Configure(_renderer);
         }
@@ -246,15 +248,23 @@ namespace Starter3D.Plugin.Physics
             {
                 UP = RandomUnitaryVector();
                 NORMAL_TO_UP = GetNormalizedNormal(UP);
+
                 _earthToWorldTransform = Matrix4.LookAt(
                     EARTH_INITIAL_POSITION,
                     EARTH_INITIAL_POSITION + NORMAL_TO_UP, 
                     UP).Inverted();
-                _earth.Data.NextPosition = EARTH_INITIAL_POSITION;
-                _earth.Data.NextVelocity = EARTH_INITIAL_VELOCITY;
-                _earth.Data.UpdatePositionAndVelocity();
+
+                _earth.InstanceData.NextPosition = EARTH_INITIAL_POSITION;
+                _earth.InstanceData.NextVelocity = EARTH_INITIAL_VELOCITY;
+                _earth.InstanceData.UpdateVariablesForNextStep();
+
                 _asteroids.ClearInstances();
                 GenerateRandomAsteroids();
+
+                _solver.ClearBoundingBoxList();
+                _solver.AddBoundingBoxXComponents(_earth.InstanceData);
+                _solver.AddBoundingBoxXComponents(_asteroids.InstancesData);
+
                 _asteroids.Configure(_renderer);
                 _simulationPaused = false;
             }
@@ -273,18 +283,18 @@ namespace Starter3D.Plugin.Physics
             for (int i = 0; i < _numberAsteroids; ++i)
             {
                 var theta = _random.NextDouble() * Math.PI * 2;
-                var radius = 300 + 80 * (2 * _random.NextDouble() - 1);
-                var relative_position = new Vector4((float)(radius * Math.Cos(theta)), 0, (float)(radius * Math.Sin(theta)), 1);
+                var orbitR = 420 + 80 * (2 * _random.NextDouble() - 1);
+                var relative_position = new Vector4((float)(orbitR * Math.Cos(theta)), 0, (float)(orbitR * Math.Sin(theta)), 1);
                 var position = Vector4.Transform(relative_position, _earthToWorldTransform).Xyz;
                 var mass = (float)(80 + 2 * (2 * _random.NextDouble() - 1));
-                var coef = 0.8 + _random.NextDouble() * 0.5;
-                var speed = (float)(Math.Sqrt(G * EARTH_MASS / radius) * coef);
+                var coef = 1 + 0.2 * (_random.NextDouble() * 2 - 1);
+                var speed = (float)(Math.Sqrt(G * EARTH_MASS / orbitR) * coef);
                 var vel = Vector3.Cross(UP, position - EARTH_INITIAL_POSITION).Normalized() * speed;
-                var scale = new Vector3((float)(3 + 0.8 * (2 * _random.NextDouble() - 1)));
+                var radius = (float)(20 + 0.8 * (2 * _random.NextDouble() - 1));
 
-                var data = new PhysicalObjectData(mass, vel, position, Quaternion.Identity, scale);
+                var sphere = new Sphere(mass, vel, position, Quaternion.Identity, _asteroids.InstancedMesh.Mesh, radius);
 
-                _asteroids.AddPhysicalObject(data);
+                _asteroids.AddObject(sphere);
             }
         }
 
@@ -304,9 +314,9 @@ namespace Starter3D.Plugin.Physics
             //_earth.Mesh.Render(_renderer, _earthToWorldTransform);
 
             _earthToWorldTransform = Matrix4.LookAt(
-                _earth.Data.Position, _earth.Data.Position + NORMAL_TO_UP, UP).Inverted();
-            var transform = _earth.Data.ScaleMatrix *
-                            _earth.Data.RotationMatrix *
+                _earth.InstanceData.Position, _earth.InstanceData.Position + NORMAL_TO_UP, UP).Inverted();
+            var transform = _earth.InstanceData.ScaleMatrix *
+                            _earth.InstanceData.RotationMatrix *
                             _earthToWorldTransform;
             _earth.Mesh.Render(_renderer, transform);
             //_earth.Render(_renderer);
@@ -321,20 +331,28 @@ namespace Starter3D.Plugin.Physics
             lock (_syncLock)
             {
                 //use solver to update state of earth and asteroids
-                _solver.SolveNextState(_earth.Data, _asteroids.InstancesData, DT);
-                _solver.SolveNextState(_asteroids.InstancesData, _earth.Data, DT);
+                _solver.SolveNextState(_earth.InstanceData, _asteroids.InstancesData);
+                _solver.SolveNextState(_asteroids.InstancesData, _earth.InstanceData);
 
-                //update positions and velocity to the values of the next state
-                _earth.Data.UpdatePositionAndVelocity();
+                //check for collisions
+                if (_checkCollisions)
+                {
+                    _solver.SortBoundingBoxXComponents();
+                    _solver.SweepBoundingBoxesForCollisions();
+                }
+
+                //update variables to be ready for the next step of the simulation
+                _earth.InstanceData.UpdateVariablesForNextStep();
                 foreach (var data in _asteroids.InstancesData)
-                    data.UpdatePositionAndVelocity();
+                    data.UpdateVariablesForNextStep();
 
+                //rotate earth for animation purposes
                 _earthRotAngle+=_angleDelta;
                 if(_earthRotAngle > _2PI)
                     _earthRotAngle -= _2PI;
-                _earth.Data.Rotation = Quaternion.FromAxisAngle(Vector3.UnitY, _earthRotAngle);
+                _earth.InstanceData.Rotation = Quaternion.FromAxisAngle(Vector3.UnitY, _earthRotAngle);
 
-                //refresh instancing transforms of and configure the asteroids
+                //refresh instancing transforms of asteroids and configure them
                 _asteroids.RefreshTransforms();
                 _asteroids.Configure(_renderer);
             }
@@ -536,6 +554,16 @@ namespace Starter3D.Plugin.Physics
             }
             return normal.Normalized();
         }
-       
+
+
+        internal void EnableCollisionDetection()
+        {
+            _checkCollisions = true;
+        }
+
+        internal void DisableCollisionDetection()
+        {
+            _checkCollisions = false;
+        }
     }
 }

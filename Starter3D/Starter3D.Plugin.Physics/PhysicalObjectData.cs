@@ -12,23 +12,25 @@ using Starter3D.API.utils;
 
 namespace Starter3D.Plugin.Physics
 {
-    public class PhysicalObjectData
+    public enum Instant { Current, Next }
+    public abstract class PhysicalObjectData
     {
-        float _mass;
+        protected float _mass;
 
-        Vector3 _nextPosition;
-        Vector3 _position;
-        Vector3 _nextVelocity;
-        Vector3 _velocity;
-        Quaternion _rotation;
-        Vector3 _scale;
+        protected Vector3 _nextPosition;
+        protected Vector3 _position;
+        protected Vector3 _nextVelocity;
+        protected Vector3 _velocity;
+        protected Quaternion _rotation;
+        protected Vector3 _scale;
 
-        Matrix4 _transMatrix;
-        Matrix4 _rotMatrix;
-        Matrix4 _scaleMatrix;
+        protected Matrix4 _transMatrix;
+        protected Matrix4 _rotMatrix;
+        protected Matrix4 _scaleMatrix;
 
-        Matrix4 _modelTransform;
-        bool _dirty = true;
+        protected Matrix4 _modelTransform;
+        protected bool _dirty = true;
+        protected IMesh _mesh;
 
         public Matrix4 ModelTransform
         {
@@ -66,7 +68,7 @@ namespace Starter3D.Plugin.Physics
         public Vector3 NextPosition { get { return _nextPosition; } set { _nextPosition = value; } }
         public Vector3 NextVelocity { get { return _nextVelocity; } set { _nextVelocity = value; } }
 
-        public PhysicalObjectData(float mass, Vector3 velocity, Vector3 position, Quaternion rotation, Vector3 scale)
+        public PhysicalObjectData(float mass, Vector3 velocity, Vector3 position, Quaternion rotation, Vector3 scale, IMesh mesh)
         {
             _velocity = velocity;
             _mass = mass;
@@ -75,14 +77,28 @@ namespace Starter3D.Plugin.Physics
             Scale = scale;
             _nextPosition = position;
             _nextVelocity = velocity;
+            _mesh = mesh;
         }
 
-        public void UpdatePositionAndVelocity()
+        public abstract Vector3 BoundingBox_Min(Instant instant);
+        public abstract Vector3 BoundingBox_Max(Instant instant);
+        public abstract float BoundingBox_MinX { get; }
+        public abstract float BoundingBox_MaxX { get; }
+        public abstract void UpdateVariablesForNextStep();
+
+    }
+    public class BBox_X
+    {
+        public PhysicalObjectData Obj;
+        public bool Min;
+        public BBox_X(PhysicalObjectData obj, bool min)
         {
-            Position = _nextPosition;
-            Velocity = _nextVelocity;
+            Obj = obj;
+            Min = min;
         }
-
-
+        public float X
+        {
+            get { return Min ? Obj.BoundingBox_MinX : Obj.BoundingBox_MaxX; }
+        }
     }
 }

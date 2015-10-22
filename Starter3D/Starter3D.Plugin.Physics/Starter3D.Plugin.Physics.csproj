@@ -66,17 +66,18 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="EulerSolver.cs" />
-    <Compile Include="MeshWrapper.cs" />
+    <Compile Include="IMeshWrapper.cs" />
     <Compile Include="PhysicsSolver.cs" />
     <Compile Include="PhysicsView.xaml.cs">
       <DependentUpon>PhysicsView.xaml</DependentUpon>
     </Compile>
     <Compile Include="RungeKuttaSolver.cs" />
-    <Compile Include="SingleInstancedPhysicalObject.cs" />
-    <Compile Include="MultiInstancedPhysicalObject.cs" />
+    <Compile Include="SingleInstancedObject.cs" />
+    <Compile Include="MultiInstancedObject.cs" />
     <Compile Include="PhysicalObjectData.cs" />
     <Compile Include="PhysicsController.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Sphere.cs" />
     <Compile Include="ViewModelBase.cs" />
   </ItemGroup>
   <ItemGroup>
