@@ -11,11 +11,10 @@ namespace Starter3D.API.geometry
     public class Mesh : IMesh
     {
         private readonly IMeshLoader _meshLoader;
-        private readonly List<IVertex> _vertices = new List<IVertex>();
-        private readonly List<IFace> _faces = new List<IFace>();
+        protected List<IVertex> _vertices = new List<IVertex>();
+        protected List<IFace> _faces = new List<IFace>();
         private IMaterial _material;
         private readonly string _name;
-        private int _copiesCount = 0;
 
         public Mesh(IMeshLoader meshLoader, string name = "default")
         {
@@ -143,6 +142,12 @@ namespace Starter3D.API.geometry
             _vertices.First().Configure(_name, _material.Shader.Name, renderer); //We use the first vertex as representatve to configure the vertex info of the renderer
         }
 
+        public void Update(IRenderer renderer)
+        {
+            renderer.UpdateVerticesData(_name, GetVerticesData());
+            renderer.UpdateIndexData(_name, GetFaceData());
+        }
+
         public void Render(IRenderer renderer, Matrix4 transform)
         {
             _material.Render(renderer);
@@ -194,21 +199,7 @@ namespace Starter3D.API.geometry
         {
             return FacesCount * 3;
         }
-        
-        public IMesh Clone()
-        {
-            Mesh clone = new Mesh(this._name + "_" + _copiesCount++);
-            foreach (var vertex in _vertices)
-            {
-                clone.AddVertex(vertex);
-            }
-            foreach (var face in _faces)
-            {
-                clone.AddFace(face);
-            }
-            clone.Material = _material;
-            return clone;
-        }
+
 
     }
 }

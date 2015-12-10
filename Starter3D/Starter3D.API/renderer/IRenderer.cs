@@ -18,13 +18,20 @@ namespace Starter3D.API.renderer
         void DrawTriangles(string objectName, int triangleCount);
         void DrawLines(string objectName, int lineCount, float lineWidth);
         void DrawPoints(string objectName, int pointCount, float pointSize);
+        void DrawInstancedTriangles(string objectName, int triangleCount, int instanceCount);
+
+        void SetVertexAttribute(string objectName, string shaderName, int index, string vertexPropertyName, int stride, int offset);
+        void SetInstanceAttribute(string objectName, string shaderName, int index, string instancePropertyName, int stride, int offset);
+
+        //Initialize and copy data to gpu buffers
         void SetVerticesData(string objectName, List<Vector3> data);
         void SetIndexData(string objectName, List<int> indices);
-        void SetVertexAttribute(string objectName, string shaderName, int index, string vertexPropertyName, int stride, int offset);
-
-        void DrawInstancedTriangles(string objectName, int triangleCount, int instanceCount);
         void SetInstanceData(string objectName, List<Matrix4> instanceData);
-        void SetInstanceAttribute(string objectName, string shaderName, int index, string instancePropertyName, int stride, int offset);
+
+        //Update data to gpu buffers
+        void UpdateVerticesData(string objectName, List<Vector3> data);
+        void UpdateIndexData(string objectName, List<int> indices);
+        void UpdateInstanceData(string objectName, List<Matrix4> instanceData);
 
         //Texture related methods
         void LoadTexture(string textureName, int index, Bitmap texture, TextureMinFilter minFilter, TextureMagFilter magFilter);

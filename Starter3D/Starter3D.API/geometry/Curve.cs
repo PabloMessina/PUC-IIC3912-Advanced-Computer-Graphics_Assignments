@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using OpenTK;
-using Starter3D.API.geometry.loaders;
 using Starter3D.API.renderer;
 using Starter3D.API.resources;
 
@@ -17,20 +15,10 @@ namespace Starter3D.API.geometry
 
         private List<IVertex> _vertices = new List<IVertex>();
 
-        public Curve(String name, float lineWidth)
+        public IMaterial Material
         {
-            _name = name;
-            _lineWidth = lineWidth;
-        }
-
-        public void AddPoint(IVertex vertex)
-        {
-            _vertices.Add(vertex);
-        }
-
-        public void Clear()
-        {
-            _vertices.Clear();
+            get { return _material; }
+            set { _material = value; }
         }
 
         public string Name
@@ -38,20 +26,20 @@ namespace Starter3D.API.geometry
             get { return _name; }
         }
 
-        public resources.IMaterial Material
+        public Curve(string name, float lineWidth)
         {
-            get { return _material; }
-            set { _material = value; }
+            _name = name;
+            _lineWidth = lineWidth;
         }
 
         public void Load(string filePath)
         {
-            throw new NotImplementedException();
+            throw new System.NotImplementedException();
         }
 
         public void Save(string filePath)
         {
-            throw new NotImplementedException();
+            throw new System.NotImplementedException();
         }
 
         public void Configure(IRenderer renderer)
@@ -62,8 +50,14 @@ namespace Starter3D.API.geometry
                 renderer.LoadObject(_name);
                 renderer.SetVerticesData(_name, GetVerticesData());
                 renderer.SetIndexData(_name, GetIndexData());
-                _vertices.First().Configure(_name, _material.Shader.Name, renderer); //We use the first vertex as representatve to configure the vertex info of the renderer
+                _vertices.First().Configure(_name, _material.Shader.Name, renderer);
             }
+        }
+
+        public void Update(IRenderer renderer)
+        {
+            renderer.UpdateVerticesData(_name, GetVerticesData());
+            renderer.UpdateIndexData(_name, GetIndexData());
         }
 
         public void Render(IRenderer renderer, Matrix4 transform)
@@ -76,7 +70,17 @@ namespace Starter3D.API.geometry
             }
         }
 
-        public List<Vector3> GetVerticesData()
+        public void AddPoint(IVertex vertex)
+        {
+            _vertices.Add(vertex);
+        }
+
+        public void Clear()
+        {
+            _vertices.Clear();
+        }
+
+        private List<Vector3> GetVerticesData()
         {
             var data = new List<Vector3>();
             foreach (var vertex in _vertices)
@@ -86,7 +90,7 @@ namespace Starter3D.API.geometry
             return data;
         }
 
-        public List<int> GetIndexData()
+        private List<int> GetIndexData()
         {
             var data = new List<int>();
             for (int i = 0; i < _vertices.Count; i++)

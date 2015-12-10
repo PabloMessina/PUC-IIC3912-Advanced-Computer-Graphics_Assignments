@@ -72,9 +72,9 @@
       <Project>{3567CAD0-DE95-4BA8-98DE-750B75DCB45A}</Project>
       <Name>Starter3D.API</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Starter3D.Plugin.Physics\Starter3D.Plugin.Physics.csproj">
-      <Project>{604da411-41cf-4452-9f3f-b05b199359be}</Project>
-      <Name>Starter3D.Plugin.Physics</Name>
+    <ProjectReference Include="..\Starter3D.Plugin.ProceduralGeometry\Starter3D.Plugin.ProceduralGeometry.csproj">
+      <Project>{c696b89e-bbb2-4b85-9aa5-f46c3e68ad44}</Project>
+      <Name>Starter3D.Plugin.ProceduralGeometry</Name>
     </ProjectReference>
     <ProjectReference Include="..\Starter3D.Renderers\Starter3D.Renderers.csproj">
       <Project>{78127754-23c1-4d69-a528-ae46cad6aec0}</Project>

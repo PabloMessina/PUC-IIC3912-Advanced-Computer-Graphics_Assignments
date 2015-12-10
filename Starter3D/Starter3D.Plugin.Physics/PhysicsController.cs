@@ -278,6 +278,7 @@ namespace Starter3D.Plugin.Physics
             _simulationPaused = false;
         }
 
+
         private void GenerateRandomAsteroids()
         {
             for (int i = 0; i < _numberAsteroids; ++i)
@@ -292,7 +293,7 @@ namespace Starter3D.Plugin.Physics
                 var vel = Vector3.Cross(UP, position - EARTH_INITIAL_POSITION).Normalized() * speed;
                 var radius = (float)(20 + 0.8 * (2 * _random.NextDouble() - 1));
 
-                var sphere = new Sphere(mass, vel, position, Quaternion.Identity, _asteroids.InstancedMesh.Mesh, radius);
+                var sphere = new Sphere(mass, vel, position, Quaternion.Identity, /*_asteroids.InstancedMesh.Mesh*/ null, radius);
 
                 _asteroids.AddObject(sphere);
             }

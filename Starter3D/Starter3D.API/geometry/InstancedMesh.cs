@@ -11,16 +11,7 @@ namespace Starter3D.API.geometry
         private readonly string _name;
         private readonly IMesh _mesh;
 
-        private  List<Matrix4> _instanceMatrices = new List<Matrix4>();
-
-
-        public List<Matrix4> InstancedMatrices
-        {
-            get { return _instanceMatrices; }
-            set { _instanceMatrices = value; }
-        }
-
-        public IMesh Mesh { get { return _mesh; } }
+        private readonly List<Matrix4> _instanceMatrices = new List<Matrix4>();
 
         public string Name
         {
@@ -57,6 +48,12 @@ namespace Starter3D.API.geometry
             renderer.SetInstanceAttribute(_name, _material.Shader.Name, 0, "instanceMatrix", 4 * Vector4.SizeInBytes, Vector4.SizeInBytes);
         }
 
+        public void Update(IRenderer renderer)
+        {
+            _mesh.Update(renderer);
+            renderer.UpdateInstanceData(_name, _instanceMatrices);
+        }
+
         public void Render(IRenderer renderer, Matrix4 modelTransform)
         {
             _material.Render(renderer);
@@ -68,11 +65,5 @@ namespace Starter3D.API.geometry
         {
             _instanceMatrices.Add(instanceMatrix);
         }
-
-        public void ClearInstances()
-        {
-            _instanceMatrices.Clear();
-        }
-
     }
 }

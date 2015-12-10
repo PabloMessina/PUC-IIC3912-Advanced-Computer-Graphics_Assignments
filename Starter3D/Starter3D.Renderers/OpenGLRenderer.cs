@@ -3,11 +3,14 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
+using System.Linq;
+using System.Runtime.InteropServices;
 using OpenTK;
 using OpenTK.Graphics;
 using Starter3D.API.renderer;
 using Starter3D.API.utils;
 using BeginMode = OpenTK.Graphics.OpenGL.BeginMode;
+using BufferAccess = OpenTK.Graphics.OpenGL.BufferAccess;
 using BufferTarget = OpenTK.Graphics.OpenGL.BufferTarget;
 using BufferUsageHint = OpenTK.Graphics.OpenGL.BufferUsageHint;
 using CullFaceMode = OpenTK.Graphics.OpenGL.CullFaceMode;
@@ -38,6 +41,17 @@ namespace Starter3D.Renderers
             public int Handle { get; set; }
             public int Unit { get; set; }
         }
+
+        class RenderObject
+        {
+            public int ObjectHandle { get; set; }
+            public int VertexBufferHandle { get; set; }
+            public int IndexBufferHandle { get; set; }
+            public int InstanceBufferHandle { get; set; }
+            public int VertexBufferSize { get; set; }
+            public int IndexBufferSize { get; set; }
+            public int InstanceBufferSize { get; set; }
+        }
         #endregion
 
         #region Fields
@@ -45,7 +59,7 @@ namespace Starter3D.Renderers
         private const string ShaderExtension = ".glsl";
 
         private readonly Dictionary<string, int> _shaderHandleDictionary = new Dictionary<string, int>();
-        private readonly Dictionary<string, int> _objectsHandleDictionary = new Dictionary<string, int>();
+        private readonly Dictionary<string, RenderObject> _objectsHandleDictionary = new Dictionary<string, RenderObject>();
         private readonly Dictionary<string, TextureInfo> _textureHandleDictionary = new Dictionary<string, TextureInfo>();
 
         #endregion
@@ -57,23 +71,31 @@ namespace Starter3D.Renderers
                 return;
             int objHandle;
             GL.GenVertexArrays(1, out  objHandle);
-            _objectsHandleDictionary.Add(objectName, objHandle);
-            GL.BindVertexArray(_objectsHandleDictionary[objectName]);
+            _objectsHandleDictionary.Add(objectName, new RenderObject() { ObjectHandle = objHandle });
+            GL.BindVertexArray(_objectsHandleDictionary[objectName].ObjectHandle);
         }
 
         public void DrawTriangles(string name, int triangleCount)
         {
             if (!_objectsHandleDictionary.ContainsKey(name))
                 throw new ApplicationException("Object must be added to the renderer before drawing");
-            GL.BindVertexArray(_objectsHandleDictionary[name]);
+            GL.BindVertexArray(_objectsHandleDictionary[name].ObjectHandle);
             GL.DrawElements(BeginMode.Triangles, triangleCount, DrawElementsType.UnsignedInt, IntPtr.Zero);
+        }
+
+        public void DrawInstancedTriangles(string objectName, int triangleCount, int instanceCount)
+        {
+            if (!_objectsHandleDictionary.ContainsKey(objectName))
+                throw new ApplicationException("Object must be added to the renderer before drawing");
+            GL.BindVertexArray(_objectsHandleDictionary[objectName].ObjectHandle);
+            GL.DrawElementsInstanced(BeginMode.Triangles, triangleCount, DrawElementsType.UnsignedInt, IntPtr.Zero, instanceCount);
         }
 
         public void DrawLines(string name, int lineCount, float lineWidth)
         {
             if (!_objectsHandleDictionary.ContainsKey(name))
                 throw new ApplicationException("Object must be added to the renderer before drawing");
-            GL.BindVertexArray(_objectsHandleDictionary[name]);
+            GL.BindVertexArray(_objectsHandleDictionary[name].ObjectHandle);
             GL.LineWidth(lineWidth);
             GL.DrawElements(BeginMode.LineStrip, lineCount, DrawElementsType.UnsignedInt, IntPtr.Zero);
         }
@@ -82,69 +104,121 @@ namespace Starter3D.Renderers
         {
             if (!_objectsHandleDictionary.ContainsKey(name))
                 throw new ApplicationException("Object must be added to the renderer before drawing");
-            GL.BindVertexArray(_objectsHandleDictionary[name]);
+            GL.BindVertexArray(_objectsHandleDictionary[name].ObjectHandle);
             GL.PointSize(pointSize);
             GL.DrawElements(BeginMode.Points, pointCount, DrawElementsType.UnsignedInt, IntPtr.Zero);
         }
 
         public void SetVerticesData(string name, List<Vector3> data)
         {
-            GL.BindVertexArray(_objectsHandleDictionary[name]);
-            var verticesArray = data.ToArray();
+            GL.BindVertexArray(_objectsHandleDictionary[name].ObjectHandle);
             int vboHandle;
             GL.GenBuffers(1, out vboHandle);
-            GL.BindBuffer(BufferTarget.ArrayBuffer, vboHandle);
-            GL.BufferData(BufferTarget.ArrayBuffer, new IntPtr(verticesArray.Length * Vector3.SizeInBytes), verticesArray, BufferUsageHint.StaticDraw);
+            _objectsHandleDictionary[name].VertexBufferHandle = vboHandle;
+            CreateVerticesData(name, data, data.Count);
+        }
+
+        private void CreateVerticesData(string name, List<Vector3> data, int bufferSize)
+        {
+            GL.BindVertexArray(_objectsHandleDictionary[name].ObjectHandle);
+            var verticesArray = data.ToArray();
+            GL.BindBuffer(BufferTarget.ArrayBuffer, _objectsHandleDictionary[name].VertexBufferHandle);
+            GL.BufferData(BufferTarget.ArrayBuffer, new IntPtr(bufferSize * Vector3.SizeInBytes), verticesArray,
+              BufferUsageHint.DynamicDraw);
+            _objectsHandleDictionary[name].VertexBufferSize = bufferSize;
+
+        }
+
+        public void UpdateVerticesData(string name, List<Vector3> data)
+        {
+            if (data.Count > _objectsHandleDictionary[name].VertexBufferSize)
+            {
+                CreateVerticesData(name, data, data.Count * 2);
+            }
+            else
+            {
+                GL.BindVertexArray(_objectsHandleDictionary[name].ObjectHandle);
+                var vertexValuesArray = new float[data.Count * 3];
+                var index = 0;
+                foreach (var vertex in data)
+                {
+                    vertexValuesArray[index++] = vertex.X;
+                    vertexValuesArray[index++] = vertex.Y;
+                    vertexValuesArray[index++] = vertex.Z;
+                }
+                var memoryPointer = GL.MapBuffer(BufferTarget.ArrayBuffer, BufferAccess.WriteOnly);
+                var byteArray = new byte[vertexValuesArray.Length * sizeof(float)];
+                Buffer.BlockCopy(vertexValuesArray, 0, byteArray, 0, byteArray.Length);
+                Marshal.Copy(byteArray, 0, memoryPointer, byteArray.Length);
+
+                GL.UnmapBuffer(BufferTarget.ArrayBuffer);
+            }
         }
 
         public void SetIndexData(string name, List<int> indices)
         {
-            GL.BindVertexArray(_objectsHandleDictionary[name]);
+            GL.BindVertexArray(_objectsHandleDictionary[name].ObjectHandle);
+            int indicesVboHandle;
+            GL.GenBuffers(1, out indicesVboHandle);
+            _objectsHandleDictionary[name].IndexBufferHandle = indicesVboHandle;
+            CreateIndexData(name, indices, indices.Count);
+        }
+
+        private void CreateIndexData(string name, List<int> indices, int bufferSize)
+        {
+            GL.BindVertexArray(_objectsHandleDictionary[name].ObjectHandle);
             var indicesArray = new uint[indices.Count];
             for (int i = 0; i < indices.Count; i++)
             {
                 indicesArray[i] = (uint)indices[i];
             }
-            int indicesVboHandle;
-            GL.GenBuffers(1, out indicesVboHandle);
-            GL.BindBuffer(BufferTarget.ElementArrayBuffer, indicesVboHandle);
-            GL.BufferData(BufferTarget.ElementArrayBuffer, new IntPtr(indicesArray.Length * sizeof(uint)), indicesArray,
-              BufferUsageHint.StaticDraw);
+
+            GL.BindBuffer(BufferTarget.ElementArrayBuffer, _objectsHandleDictionary[name].IndexBufferHandle);
+            GL.BufferData(BufferTarget.ElementArrayBuffer, new IntPtr(bufferSize * sizeof(uint)), indicesArray, BufferUsageHint.DynamicDraw);
+            _objectsHandleDictionary[name].IndexBufferSize = bufferSize;
+
         }
 
-        public void SetVertexAttribute(string name, string shaderName, int index, string vertexPropertyName, int stride, int offset)
+        public void UpdateIndexData(string name, List<int> indices)
         {
-            GL.BindVertexArray(_objectsHandleDictionary[name]);
+            if (indices.Count > _objectsHandleDictionary[name].IndexBufferSize)
+            {
+                CreateIndexData(name, indices, indices.Count * 2);
+            }
+            else
+            {
+                GL.BindVertexArray(_objectsHandleDictionary[name].ObjectHandle);
+                var indicesArray = new uint[indices.Count];
+                for (int i = 0; i < indices.Count; i++)
+                {
+                    indicesArray[i] = (uint)indices[i];
+                }
+                var memoryPointer = GL.MapBuffer(BufferTarget.ElementArrayBuffer, BufferAccess.WriteOnly);
+                var byteArray = new byte[indicesArray.Length * sizeof(uint)];
+                Buffer.BlockCopy(indicesArray, 0, byteArray, 0, byteArray.Length);
+                Marshal.Copy(byteArray, 0, memoryPointer, byteArray.Length);
+
+                GL.UnmapBuffer(BufferTarget.ElementArrayBuffer);
+            }
+        }
+
+
+
+        public void SetVertexAttribute(string objectName, string shaderName, int index, string vertexPropertyName, int stride, int offset)
+        {
+            GL.BindVertexArray(_objectsHandleDictionary[objectName].ObjectHandle);
             int location = GL.GetAttribLocation(_shaderHandleDictionary[shaderName], vertexPropertyName);
             if (location != -1)
             {
                 GL.EnableVertexAttribArray(location);
                 GL.VertexAttribPointer(location, 3, VertexAttribPointerType.Float, false, stride, IntPtr.Add(IntPtr.Zero, offset));
+                GL.VertexAttribDivisor(location, 0);
             }
         }
 
-        public void DrawInstancedTriangles(string objectName, int triangleCount, int instanceCount)
+        public void SetInstanceAttribute(string objectName, string shaderName, int index, string instancePropertyName, int stride, int offset)
         {
-            if (!_objectsHandleDictionary.ContainsKey(objectName))
-                throw new ApplicationException("Object must be added to the renderer before drawing");
-            GL.BindVertexArray(_objectsHandleDictionary[objectName]);
-            GL.DrawElementsInstanced(BeginMode.Triangles, triangleCount, DrawElementsType.UnsignedInt, IntPtr.Zero, instanceCount);
-        }
-
-        public void SetInstanceData(string objectName, List<Matrix4> instanceData)
-        {
-            GL.BindVertexArray(_objectsHandleDictionary[objectName]);
-            var verticesArray = instanceData.ToArray();
-            int vboHandle;
-            GL.GenBuffers(1, out vboHandle);
-            GL.BindBuffer(BufferTarget.ArrayBuffer, vboHandle);
-            GL.BufferData(BufferTarget.ArrayBuffer, new IntPtr(verticesArray.Length * 4 * Vector4.SizeInBytes), verticesArray, BufferUsageHint.StaticDraw);
-        }
-
-        public void SetInstanceAttribute(string objectName, string shaderName, int index, string instancePropertyName, int stride,
-          int offset)
-        {
-            GL.BindVertexArray(_objectsHandleDictionary[objectName]);
+            GL.BindVertexArray(_objectsHandleDictionary[objectName].ObjectHandle);
             int location = GL.GetAttribLocation(_shaderHandleDictionary[shaderName], instancePropertyName);
             if (location != -1)
             {
@@ -154,6 +228,69 @@ namespace Starter3D.Renderers
                     GL.VertexAttribPointer(location + i, 4, VertexAttribPointerType.Float, false, stride, IntPtr.Add(IntPtr.Zero, i * offset));
                     GL.VertexAttribDivisor(location + i, 1);
                 }
+            }
+        }
+
+        public void SetInstanceData(string name, List<Matrix4> instanceData)
+        {
+            GL.BindVertexArray(_objectsHandleDictionary[name].ObjectHandle);
+            int instanceHandle;
+            GL.GenBuffers(1, out instanceHandle);
+            _objectsHandleDictionary[name].InstanceBufferHandle = instanceHandle;
+            CreateInstanceData(name, instanceData, instanceData.Count);
+
+        }
+
+        private void CreateInstanceData(string name, List<Matrix4> instanceData, int bufferSize)
+        {
+            GL.BindVertexArray(_objectsHandleDictionary[name].ObjectHandle);
+            var instancesArray = instanceData.ToArray();
+            GL.BindBuffer(BufferTarget.ArrayBuffer, _objectsHandleDictionary[name].InstanceBufferHandle);
+            GL.BufferData(BufferTarget.ArrayBuffer, new IntPtr(bufferSize * 4 * Vector4.SizeInBytes), instancesArray,
+              BufferUsageHint.DynamicDraw);
+            _objectsHandleDictionary[name].InstanceBufferSize = bufferSize;
+
+        }
+
+        public void UpdateInstanceData(string name, List<Matrix4> instanceData)
+        {
+            if (instanceData.Count > _objectsHandleDictionary[name].InstanceBufferSize)
+            {
+                CreateInstanceData(name, instanceData, instanceData.Count * 2);
+            }
+            else
+            {
+                GL.BindVertexArray(_objectsHandleDictionary[name].ObjectHandle);
+                var instancesValuesArray = new float[instanceData.Count * 16];
+                var index = 0;
+                foreach (var instance in instanceData)
+                {
+                    instancesValuesArray[index++] = instance.Column0.X;
+                    instancesValuesArray[index++] = instance.Column0.Y;
+                    instancesValuesArray[index++] = instance.Column0.Z;
+                    instancesValuesArray[index++] = instance.Column0.W;
+
+                    instancesValuesArray[index++] = instance.Column1.X;
+                    instancesValuesArray[index++] = instance.Column1.Y;
+                    instancesValuesArray[index++] = instance.Column1.Z;
+                    instancesValuesArray[index++] = instance.Column1.W;
+
+                    instancesValuesArray[index++] = instance.Column2.X;
+                    instancesValuesArray[index++] = instance.Column2.Y;
+                    instancesValuesArray[index++] = instance.Column2.Z;
+                    instancesValuesArray[index++] = instance.Column2.W;
+
+                    instancesValuesArray[index++] = instance.Column3.X;
+                    instancesValuesArray[index++] = instance.Column3.Y;
+                    instancesValuesArray[index++] = instance.Column3.Z;
+                    instancesValuesArray[index++] = instance.Column3.W;
+                }
+                var memoryPointer = GL.MapBuffer(BufferTarget.ArrayBuffer, BufferAccess.WriteOnly);
+                var byteArray = new byte[instancesValuesArray.Length * sizeof(float)];
+                Buffer.BlockCopy(instancesValuesArray, 0, byteArray, 0, byteArray.Length);
+                Marshal.Copy(byteArray, 0, memoryPointer, byteArray.Length);
+
+                GL.UnmapBuffer(BufferTarget.ArrayBuffer);
             }
         }
 

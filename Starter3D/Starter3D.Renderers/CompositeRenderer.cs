@@ -98,6 +98,30 @@ namespace Starter3D.Renderers
             }
         }
 
+        public void UpdateVerticesData(string objectName, List<Vector3> data)
+        {
+            foreach (var renderer in _renderers)
+            {
+                renderer.UpdateVerticesData(objectName, data);
+            }
+        }
+
+        public void UpdateIndexData(string objectName, List<int> indices)
+        {
+            foreach (var renderer in _renderers)
+            {
+                renderer.UpdateIndexData(objectName, indices);
+            }
+        }
+
+        public void UpdateInstanceData(string objectName, List<Matrix4> instanceData)
+        {
+            foreach (var renderer in _renderers)
+            {
+                renderer.UpdateInstanceData(objectName, instanceData);                
+            }
+        }
+
         public void SetInstanceAttribute(string objectName, string shaderName, int index, string instancePropertyName, int stride,
           int offset)
         {

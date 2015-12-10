@@ -59,6 +59,6 @@ namespace Starter3D.API.geometry
 
         int GetTriangleCount();
 
-        IMesh Clone();
+        //IMesh Clone();
     }
 }

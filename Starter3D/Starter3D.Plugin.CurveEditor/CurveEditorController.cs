@@ -108,7 +108,7 @@ namespace Starter3D.Plugin.CurveEditor
                 {
                     _selectedCurveType = value;
                     RefreshCurve();
-                    RaisePropertyChanged("SelectedCurveType");
+                    RaisePropertyChanged("SelectedCurveType");                    
                 }
             }
         }
